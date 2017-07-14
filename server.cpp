@@ -58,7 +58,7 @@ int main(void)
                 printf("listen Fail\n");
                 return -1;
         }
-le(1) {
+	while(1) {
                 len = sizeof(c_addr);
                 c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
                 n=read(c_socket, buffer,sizeof(buffer));
