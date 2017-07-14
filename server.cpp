@@ -6,6 +6,8 @@ const char *user = (char*)"root";
 const char *pw = (char*)"bitiotansehen";
 const char *db = (char*)"ansehen";
 char    buffer[BUFSIZ];
+USER_INFO userTemp;
+
 
 int main(void)
 {
@@ -61,12 +63,14 @@ int main(void)
 	while(1) {
                 len = sizeof(c_addr);
                 c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
-                n=read(c_socket, buffer,sizeof(buffer));
-                buffer[n]='\0';
-                printf("received Data : %s\n",buffer);
-                memset(query,'\0',strlen(query));
-                sprintf(query,"insert into USER_INFO (name,phone_num,image_add,start,end) values ('la','%s','123','111','111')",buffer);
-                query_stat = mysql_query(connection,query);
+                //n=read(c_socket, buffer,sizeof(buffer));
+		read(c_socket,&userTemp,sizeof(userTemp));
+                //buffer[n]='\0';
+                //printf("received Data : %s\n",buffer);
+                //memset(query,'\0',strlen(query));
+                //sprintf(query,"insert into USER_INFO (unique_key,name,phone_num,phone_num_input,image_add,start,end) values ('11','la','%s','123','123','111','111')",buffer);
+                sprintf(query,"insert into USER_INFO (unique_key,name,phone_num,phone_num_input,pw,image_add,start,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",userTemp.uniqueKey,userTemp.name,userTemp.phoneNum,userTemp.phoneNumInput,userTemp.pw,userTemp.imageAdd);
+		query_stat = mysql_query(connection,query);
                 if(query_stat != 0)
                 {
                         fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
