@@ -13,7 +13,7 @@ class USER_INFO
 	char phoneNum[14];
 	char phoneNumInput[14];
 	char name[20];
-	char pw[20];
+	char pw[5];
 	char imageAdd[200];
 	char uniqueKey[100];
 };
