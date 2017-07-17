@@ -1,6 +1,7 @@
 #include "server.h"
 
 #define PORT 9001
+#define ARG_MAX 6
 const char *host = (char*)"localhost";
 const char *user = (char*)"root";
 const char *pw = (char*)"bitiotansehen";
@@ -19,8 +20,10 @@ int main(void)
         MYSQL_RES  *sql_result;
         MYSQL_ROW sql_row;
         char query[BUFSIZ];
-
-        s_socket = socket(PF_INET, SOCK_STREAM, 0);
+	char *ptr;
+	char c_buff[ARG_MAX][BUFSIZ];
+        
+	s_socket = socket(PF_INET, SOCK_STREAM, 0);
 
         memset(&s_addr, 0, sizeof(s_addr));
         s_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -68,6 +71,22 @@ int main(void)
                 n=read(c_socket, buffer,sizeof(buffer));
 		buffer[strlen(buffer)+1]='\0';
 		printf("got : %s",buffer);
+		ptr=strtok(buffer," ");
+		for(int i=0; i<ARG_MAX ;i++)
+		{
+			if(ptr==NULL)
+				break;
+			strcpy(c_buff[i],ptr);
+			ptr= strtok(NULL," ");
+			printf("c_buff[%d] : %s\n",i,c_buff[i]);
+		}
+		sprintf(query,"insert into USER_INFO (phone_num,phone_num_input,name,pw,image_add,unique_key,start,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",c_buff[0],c_buff[1],c_buff[2],c_buff[3],c_buff[4],c_buff[5]);
+		query_stat = mysql_query(connection,query);
+                if(query_stat != 0)
+                {
+                        fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+                        return 1;
+                }
                /* memset(userTemp.phoneNum,'\0',strlen(userTemp.phoneNum));
                 memset(userTemp.phoneNumInput,'\0',strlen(userTemp.phoneNumInput));
                 memset(userTemp.pw,'\0',strlen(userTemp.pw));
