@@ -7,7 +7,6 @@ const char *user = (char*)"root";
 const char *pw = (char*)"bitiotansehen";
 const char *db = (char*)"ansehen";
 char    buffer[BUFSIZ];
-USER_INFO userTemp;
 
 
 int main(void)
@@ -87,30 +86,6 @@ int main(void)
                         fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
                         return 1;
                 }
-               /* memset(userTemp.phoneNum,'\0',strlen(userTemp.phoneNum));
-                memset(userTemp.phoneNumInput,'\0',strlen(userTemp.phoneNumInput));
-                memset(userTemp.pw,'\0',strlen(userTemp.pw));
-                memset(userTemp.imageAdd,'\0',strlen(userTemp.imageAdd));
-                memset(userTemp.name,'\0',strlen(userTemp.name));
-                memset(userTemp.uniqueKey,'\0',strlen(userTemp.uniqueKey));
-		read(c_socket,userTemp.phoneNum,sizeof(userTemp.phoneNum));
-		printf("phonenum : %s",userTemp.phoneNum);
-		read(c_socket,userTemp.phoneNumInput,sizeof(userTemp.phoneNumInput));
-		printf("\nphonenuminput: %s\n",userTemp.phoneNumInput);
-		read(c_socket,userTemp.name,sizeof(userTemp.name));
-	
-		read(c_socket,userTemp.pw,sizeof(userTemp.pw));
-		read(c_socket,userTemp.imageAdd,sizeof(userTemp.imageAdd));
-		read(c_socket,userTemp.uniqueKey,sizeof(userTemp.uniqueKey));
-		printf("uniquekey: %s\n",userTemp.uniqueKey);
-                memset(query,'\0',strlen(query));
-                sprintf(query,"insert into USER_INFO (unique_key,name,phone_num,phone_num_input,pw,image_add,start,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",userTemp.uniqueKey,userTemp.name,userTemp.phoneNum,userTemp.phoneNumInput,userTemp.pw,userTemp.imageAdd);
-		query_stat = mysql_query(connection,query);
-                if(query_stat != 0)
-                {
-                        fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-                        return 1;
-                }*/
                 close(c_socket);
         }
         close(s_socket);
