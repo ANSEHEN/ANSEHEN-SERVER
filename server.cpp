@@ -8,6 +8,7 @@ const char *pw = (char*)"bitiotansehen";
 const char *db = (char*)"ansehen";
 char    buffer[BUFSIZ];
 
+static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 
 int main(void)
 {
@@ -63,6 +64,8 @@ int main(void)
                 return -1;
         }
 	while(1) {
+
+
                 len = sizeof(c_addr);
 		printf("before\n");
                 c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
@@ -86,6 +89,44 @@ int main(void)
                         fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
                         return 1;
                 }
+		CURL *curl_handle;
+		char *pagefilename =c_buff[4];
+		char url[BUFSIZ];
+		sprintf(url,"http://13.124.164.203/image/%s",pagefilename); 
+		FILE *pagefile;
+		curl_global_init(CURL_GLOBAL_ALL);
+
+  		/* init the curl session */
+  		curl_handle = curl_easy_init();
+
+	 	/* set URL to get here */
+		curl_easy_setopt(curl_handle, CURLOPT_URL, url);
+
+		/* Switch on full protocol/debug output while testing */
+		curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+
+		/* disable progress meter, set to 0L to enable and disable debug output */
+		curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+
+		/* send all data to this function  */
+		curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+
+		/* open the file */
+		pagefile = fopen(pagefilename, "wb");
+		if(pagefile) 
+		{
+			/* write the page body to this file handle */
+			curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
+
+			/* get it! */
+			curl_easy_perform(curl_handle);
+
+			/* close the header file */
+			fclose(pagefile);
+		}
+
+		/* cleanup curl stuff */
+		curl_easy_cleanup(curl_handle);
                 close(c_socket);
         }
         close(s_socket);
@@ -93,3 +134,8 @@ int main(void)
         return 0;
 }
 
+static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream)
+{
+	size_t written = fwrite(ptr, size, nmemb, (FILE *) stream);
+	return written;
+}

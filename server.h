@@ -5,5 +5,5 @@
 #include <string.h>
 #include <mysql.h>
 #include <stdlib.h>
-
+#include <curl/curl.h>
 
