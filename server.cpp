@@ -34,8 +34,11 @@ int main(void)
         s_addr.sin_port = htons(PORT);
         ////////////////////////////////////////
 
-        /* db */
+	/* CCTV Information*/
 	Node * root = cctv_info_load();
+
+        /* db */
+
         connection = mysql_init(NULL);
         if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
         {
@@ -43,7 +46,7 @@ int main(void)
 		exit(1);
         }
 
-        //send sql query
+        	//send sql query
         if(mysql_query(connection, "show tables"))
         {
                 fprintf(stderr,"%s\n",mysql_error(connection));
@@ -51,12 +54,15 @@ int main(void)
         }
         sql_result = mysql_use_result(connection);
 
-        //output table name
+        	//output table name
         printf("MySQL Tables in mysql database:\n");
         while((sql_row=mysql_fetch_row(sql_result))!=NULL)
                 printf("%s\n",sql_row[0]);
 
         mysql_free_result(sql_result);
+
+
+
         /* network */
         if(bind(s_socket, (struct sockaddr *) &s_addr, sizeof(s_addr)) == -1) {
                 printf("Can not Bind\n");
@@ -67,6 +73,7 @@ int main(void)
                 printf("listen Fail\n");
                 return -1;
         }
+
 	while(1) {
 
 
@@ -78,6 +85,7 @@ int main(void)
 		buffer[strlen(buffer)+1]='\0';
 		printf("got : %s",buffer);
 		ptr=strtok(buffer," ");
+
 		for(int i=0; i<ARG_MAX ;i++)
 		{
 			if(ptr==NULL)
@@ -86,13 +94,17 @@ int main(void)
 			ptr= strtok(NULL," ");
 			printf("c_buff[%d] : %s\n",i,c_buff[i]);
 		}
+
 		sprintf(query,"insert into USER_INFO (phone_num,phone_num_input,name,pw,image_add,unique_key,start,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",c_buff[0],c_buff[1],c_buff[2],c_buff[3],c_buff[4],c_buff[5]);
+
 		query_stat = mysql_query(connection,query);
                 if(query_stat != 0)
                 {
                         fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
                         return 1;
                 }
+
+		/* file download from url */
 		CURL *curl_handle;
 		char *pagefilename =c_buff[4];
 		char url[BUFSIZ];
@@ -100,37 +112,37 @@ int main(void)
 		FILE *pagefile;
 		curl_global_init(CURL_GLOBAL_ALL);
 
-  		/* init the curl session */
+  			// init the curl session 
   		curl_handle = curl_easy_init();
 
-	 	/* set URL to get here */
+	 		// set URL to get here 
 		curl_easy_setopt(curl_handle, CURLOPT_URL, url);
 
-		/* Switch on full protocol/debug output while testing */
+			// Switch on full protocol/debug output while testing 
 		curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
 
-		/* disable progress meter, set to 0L to enable and disable debug output */
+			// disable progress meter, set to 0L to enable and disable debug output 
 		curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
 
-		/* send all data to this function  */
+			// send all data to this function  
 		curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 
-		/* open the file */
+			// open the file 
 		pagefile = fopen(pagefilename, "wb");
 		if(pagefile) 
 		{
-			/* write the page body to this file handle */
+			// write the page body to this file handle 
 			curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, pagefile);
 
-			/* get it! */
 			curl_easy_perform(curl_handle);
 
-			/* close the header file */
+			// close the header file 
 			fclose(pagefile);
 		}
 
-		/* cleanup curl stuff */
+			// cleanup curl stuff 
 		curl_easy_cleanup(curl_handle);
+
                 close(c_socket);
         }
         close(s_socket);
