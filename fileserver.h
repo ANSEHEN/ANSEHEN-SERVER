@@ -1,15 +1,13 @@
 #include <stdio.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <unistd.h>
-#include <string.h>
-#include <mysql.h>
-#include <stdlib.h>
-#include <curl/curl.h>
-#include <sys/msg.h>
 #include <sys/ipc.h>
-#include "cctv.h"
-
+#include <sys/msg.h>
+#include <string.h>
+#include <stdlib.h>
+#include <iostream>
+#include <unistd.h>
+#define PORT 9002
 class mbuf {
 	public :
 	long mtype;
@@ -17,3 +15,4 @@ class mbuf {
 	char unique_key[100];
 	char image_addr[200];
 };
+const int type = 1;

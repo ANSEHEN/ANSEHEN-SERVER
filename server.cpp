@@ -73,12 +73,20 @@ int main(void)
                 printf("listen Fail\n");
                 return -1;
         }
+	
+	int msgid;
+	msgid=msgget(1234,IPC_CREAT);
 
 	while(1) {
 
 
                 len = sizeof(c_addr);
 		printf("before\n");
+		 mbuf msg;
+		msg.mtype=1;
+		strcpy(msg.buf,"server sent\n");
+		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
+             			perror("send fail ");
                 c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		printf("after\n");
                 n=read(c_socket, buffer,sizeof(buffer));
