@@ -83,11 +83,15 @@ int main(void)
                 len = sizeof(c_addr);
 		printf("before\n");
 		 mbuf msg;
+//test start
 		msg.mtype=1;
 		strcpy(msg.buf,"server sent\n");
+		strcpy(msg.unique_key,"1500518259066");
+		strcpy(msg.image_addr,"01064078205__1500518259066.jpg");
 		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
              			perror("send fail ");
-                c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+//test end     
+	        c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		printf("after\n");
                 n=read(c_socket, buffer,sizeof(buffer));
 		buffer[strlen(buffer)+1]='\0';
@@ -150,8 +154,14 @@ int main(void)
 
 			// cleanup curl stuff 
 		curl_easy_cleanup(curl_handle);
-
                 close(c_socket);
+		//intercommunication with fileserver	
+		msg.mtype=1;
+		strcpy(msg.buf,"server sent\n");
+		strcpy(msg.unique_key,"1500518259066");
+		strcpy(msg.image_addr,"01064078205__1500518259066.jpg");
+		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
+             			perror("send fail ");
         }
         close(s_socket);
         mysql_close(connection);
