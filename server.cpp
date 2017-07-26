@@ -9,9 +9,10 @@ const char *db = (char*)"ansehen";
 char    buffer[BUFSIZ];
 int max_cctv;
 
-int CCTV::total_cctv=0;
+//int CCTV::total_cctv=0;
 static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 Node* cctv_info_load();
+void set_send_cctv_info(Node *root,char *uniqueKey);
 
 int main(void)
 {
@@ -88,6 +89,7 @@ int main(void)
 		strcpy(msg.buf,"server sent\n");
 		strcpy(msg.unique_key,"1500518259066");
 		strcpy(msg.image_addr,"01064078205__1500518259066.jpg");
+		set_send_cctv_info(root,msg.unique_key);
 		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
              			perror("send fail ");
 //test end     
@@ -174,6 +176,45 @@ static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream)
 	return written;
 }
 
+void set_send_cctv_info(Node *root,char *uniqueKey)
+{
+ 	
+        Node *cur =root;
+
+        int query_stat;
+        MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+        char *ptr;
+
+
+        /* db */
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
+
+	query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+	}
+
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"4");
+
+	query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        }
+        
+        mysql_close(connection);
+}
+
 Node* cctv_info_load()
 {
         Node *root = new Node();
@@ -209,7 +250,7 @@ Node* cctv_info_load()
 
         //Query _ CCTV_INFO
         if(mysql_query(connection, "select * from CCTV_INFO"))
-       {
+        {
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
         }

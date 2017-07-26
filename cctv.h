@@ -1,7 +1,6 @@
 class CCTV
 {
         private :
-	static int total_cctv;
         char * id;
         char *beacon_id;
         char * ip_addr;

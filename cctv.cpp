@@ -6,12 +6,10 @@ CCTV::CCTV()
 	beacon_id=NULL;
 	ip_addr=NULL;
 	location_addr=NULL;
-	total_cctv++;
 }
 
 CCTV::CCTV(char* id_p,char *b_id_p,char *ip_p,char* lo_p)
 {
-	total_cctv++;
 	id=id_p;
 	beacon_id=b_id_p;
 	ip_addr=ip_p;

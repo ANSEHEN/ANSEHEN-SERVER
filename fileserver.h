@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <unistd.h>
+#include <mysql.h>
+#include "cctv.h"
 #define PORT 9002
 #define BUFSIZE 1024
 class mbuf {
