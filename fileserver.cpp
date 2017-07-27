@@ -6,9 +6,11 @@ const char *pw = (char*)"bitiotansehen";
 const char *db = (char*)"ansehen";
 
 char	buffer[BUFSIZ] = "hello, world";
+int max_cctv;
 void err_quit(const char *msg);
 void err_display(const char *msg);
 Node* get_send_cctv_info(char * uniqueKey);
+Node* cctv_info_load();
 
 int main()
 {
@@ -40,15 +42,31 @@ int main()
 		return -1;
 	}
 
+	Node * root_all_cctv = cctv_info_load();
+	Node *root_snd_cctv = NULL;
+	Pocket pocket[max_cctv];
+	for(int i=0;i<max_cctv;i++)
+	{
+		pocket[i].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+
+		recv(pocket[i].c_socket, pocket[i].cctv_id, strlen(pocket[i].cctv_id)+1, 0);
+	
+		recv(pocket[i].c_socket, pocket[i].ip, strlen(pocket[i].ip)+1, 0);
+		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv_id,pocket[i].ip);
+	} 
 	while(1) {
 		len = sizeof(c_addr);
 		msgrcv(msgid,(void*)&msg,sizeof(struct mbuf),type,0);
 		printf("rcv mesg!\n");
 		printf("msg : %s \n",msg.buf);
 		printf("msg : %s \n",msg.unique_key);
-		get_send_cctv_info(msg.unique_key);
+		if(root_snd_cctv!=NULL)
+			delete root_snd_cctv;
+		else
+			printf("initial setting of root snd cctv\n");	
+		root_snd_cctv = get_send_cctv_info(msg.unique_key);
 		printf("msg : %s \n",msg.image_addr);
-		c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+		//c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
                 //unique_key
                 n = strlen(msg.unique_key);
                 write(c_socket, msg.unique_key, n);
@@ -114,6 +132,78 @@ int main()
 	}
 	close(s_socket);
 }
+Node* cctv_info_load()
+{
+        Node *root = new Node();
+        Node *cur =root;
+
+        int query_stat;
+        MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+        char *ptr;
+        /* db */
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }
+        //Query _ number of CCTV
+        if(mysql_query(connection, "select TABLE_ROWS from information_schema.tables where table_name = 'CCTV_INFO'"))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }
+        sql_result = mysql_use_result(connection);
+        sql_row=mysql_fetch_row(sql_result);
+        max_cctv =atoi(sql_row[0]);
+        printf("max_cctv : %d\n",max_cctv);
+
+        mysql_free_result(sql_result);
+        //Query _ CCTV_INFO
+        if(mysql_query(connection, "select * from CCTV_INFO"))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }
+        sql_result = mysql_use_result(connection);
+        int i=0;
+        while((sql_row=mysql_fetch_row(sql_result))!=NULL)
+        {
+                char *id=new char[5];
+                strcpy(id,sql_row[0]);
+                printf("%s      ",id);
+                char *b_id=new char[BUFSIZ];
+                strcpy(b_id,sql_row[1]);
+                printf("%s      ",b_id);
+                char * ip = new char[BUFSIZ];
+                strcpy(ip,sql_row[2]);
+                printf("%s      ",ip);
+                char * lo = new char[BUFSIZ];
+                strcpy(lo,sql_row[3]);
+                printf("%s\n",lo);
+                cur->data=new CCTV(id,b_id,ip,lo);
+                if(i!=max_cctv-1)
+                {
+                        cur->rear = new Node();
+                        cur->rear->front=cur;
+                        cur=cur->rear;
+                }
+                i++;
+
+        }
+
+
+        mysql_free_result(sql_result);
+
+        mysql_close(connection);
+        return root;
+}
+
+
+
 Node* get_send_cctv_info(char * uniqueKey)
 {
 

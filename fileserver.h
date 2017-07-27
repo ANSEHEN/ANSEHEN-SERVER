@@ -20,4 +20,11 @@ class mbuf {
 	char unique_key[100];
 	char image_addr[200];
 };
+class Pocket {
+	public :
+	int c_socket;
+	char cctv_id[5];
+	char ip[20];
+	
+};
 const int type = 1;

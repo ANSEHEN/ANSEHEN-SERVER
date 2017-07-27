@@ -17,6 +17,7 @@ CCTV::CCTV(char* id_p,char *b_id_p,char *ip_p,char* lo_p)
 }
 CCTV::~CCTV()
 {
+        printf("delete CCTV id : %s\n",id);
 	if(id!=NULL)
 		delete id;
         if(beacon_id!=NULL)
