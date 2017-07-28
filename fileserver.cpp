@@ -68,6 +68,10 @@ int main()
 	//	recv(pocket[0].c_socket, ip, strlen(ip)+1, 0);
 //		strcpy(pocket[0].ip,cctv_data.ip);
 //		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,pocket[0].cctv_id,pocket[0].ip);
+		pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
+
+		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,cctv_data.cctv_id,cctv_data.ip);
 	while(1) {
 		len = sizeof(c_addr);
 		msgrcv(msgid,(void*)&msg,sizeof(msg),type,0);
@@ -78,12 +82,12 @@ int main()
 			delete root_snd_cctv;
 		else
 			printf("initial setting of root snd cctv\n");	
-		root_snd_cctv = get_send_cctv_info(msg.unique_key);
+//		root_snd_cctv = get_send_cctv_info(msg.unique_key);
 		printf("msg : %s \n",msg.image_addr);
-		pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
-		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
+		//pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+		//recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
 
-		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,cctv_data.cctv_id,cctv_data.ip);
+		//printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,cctv_data.cctv_id,cctv_data.ip);
 
 
 
@@ -174,8 +178,11 @@ int main()
 			}
 		}
 		fclose(fp);
-		close(pocket[0].c_socket);
+	//	close(pocket[0].c_socket);
 	}
+
+		close(pocket[0].c_socket);
+	
 	close(s_socket);
 }
 Node* cctv_info_load()
