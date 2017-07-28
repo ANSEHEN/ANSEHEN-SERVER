@@ -45,18 +45,32 @@ int main()
 	Node * root_all_cctv = cctv_info_load();
 	Node *root_snd_cctv = NULL;
 	Pocket pocket[max_cctv];
-	for(int i=0;i<max_cctv;i++)
+	/*for(int i=0;i<max_cctv;i++)
 	{
+		char ip[20];
+		char id[5];
+
 		pocket[i].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 
-		recv(pocket[i].c_socket, pocket[i].cctv_id, strlen(pocket[i].cctv_id)+1, 0);
+		recv(pocket[i].c_socket,id, strlen(id)+1,0);
+		strcpy(pocket[i].cctv_id,id);
 	
-		recv(pocket[i].c_socket, pocket[i].ip, strlen(pocket[i].ip)+1, 0);
+		recv(pocket[i].c_socket, ip, strlen(ip)+1, 0);
+		strcpy(pocket[i].ip,ip);
 		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv_id,pocket[i].ip);
-	} 
+	}*/ 
+		Cctv_data cctv_data; 
+		//pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+
+//		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
+//		strcpy(pocket[0].cctv_id,cctv_data.cctv_id);
+	
+	//	recv(pocket[0].c_socket, ip, strlen(ip)+1, 0);
+//		strcpy(pocket[0].ip,cctv_data.ip);
+//		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,pocket[0].cctv_id,pocket[0].ip);
 	while(1) {
 		len = sizeof(c_addr);
-		msgrcv(msgid,(void*)&msg,sizeof(struct mbuf),type,0);
+		msgrcv(msgid,(void*)&msg,sizeof(msg),type,0);
 		printf("rcv mesg!\n");
 		printf("msg : %s \n",msg.buf);
 		printf("msg : %s \n",msg.unique_key);
@@ -66,10 +80,22 @@ int main()
 			printf("initial setting of root snd cctv\n");	
 		root_snd_cctv = get_send_cctv_info(msg.unique_key);
 		printf("msg : %s \n",msg.image_addr);
+		pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
+
+		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,cctv_data.cctv_id,cctv_data.ip);
+
+
+
+
 		//c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
                 //unique_key
-                n = strlen(msg.unique_key);
-                write(c_socket, msg.unique_key, n);
+
+
+                n = strlen(msg.unique_key)+1;
+                //write(c_socket, msg.unique_key, n);
+		int retval;// = send(pocket[0].c_socket, msg.unique_key, n+1, 0);
+		//if(retval < 0) err_quit("send()");
 
 		// FILE
 		FILE *fp = fopen(msg.image_addr, "rb");
@@ -77,16 +103,34 @@ int main()
 			perror("파일 입출력 오류");
 			return 1;
 		}
+		else
+		{
+			printf("lala\n");
+		}
+		
 
 		// 파일 이름 보내기
+/*
 		char filename[256];
-		strncpy(filename, msg.image_addr, sizeof(filename));
-		int retval = send(c_socket, filename, 256, 0);
+		strcpy(filename, msg.image_addr);
+		printf("filename : !!%s!!\n",filename);
+                n = strlen(filename)+1;
+                //write(c_socket, filename, n);
+		retval = send(pocket[0].c_socket, filename,n+1,  0);
 		if(retval < 0) err_quit("send()");
+		printf("kkk\n");
+*/
+		Data data;
+		strcpy(data.unique_key,msg.unique_key);
+		strcpy(data.image_addr,msg.image_addr);
+		printf("unique : %s\n",data.unique_key);
+		printf("image : %s\n",data.image_addr);
+		send(pocket[0].c_socket, &data,sizeof(data),  0);
+
 
 		// 전송 시작할 위치(=현재의 파일 크기) 받기
 		int currbytes;
-		retval = recv(c_socket, (char *)&currbytes, sizeof(currbytes), MSG_WAITALL);
+		retval = recv(pocket[0].c_socket, (char *)&currbytes, sizeof(currbytes), MSG_WAITALL);
 		if(retval < 0) err_quit("recv()");
 		printf("### 옵셋 %d 바이트 지점부터 전송을 시작합니다. ###\n", currbytes);
 
@@ -96,7 +140,7 @@ int main()
 		int totalbytes = filesize - currbytes;
 
 		// 전송할 데이터 크기 보내기
-		retval = send(c_socket, (char *)&totalbytes, sizeof(totalbytes), 0);
+		retval = send(pocket[0].c_socket, (char *)&totalbytes, sizeof(totalbytes), 0);
 		if(retval < 0) err_quit("send()");
 
 		// 파일 데이터 전송에 사용할 변수
@@ -109,7 +153,7 @@ int main()
 		while(1){
 			numread = fread(buf, 1, BUFSIZE, fp);
 			if(numread > 0){
-				retval = send(c_socket, buf, numread, 0);
+				retval = send(pocket[0].c_socket, buf, numread, 0);
 				if(retval < 0){
 					err_display("send()");
 					break;
@@ -120,6 +164,8 @@ int main()
 			}
 			else if(numread == 0 && numtotal == totalbytes){
 				printf("\n파일 전송 완료!: %d 바이트 전송됨\n", filesize);
+		//retval = send(c_socket, msg.unique_key, n+1, 0);
+		//if(retval < 0) err_quit("send()");
 				break;
 			}
 			else{
@@ -128,7 +174,7 @@ int main()
 			}
 		}
 		fclose(fp);
-		close(c_socket);
+		close(pocket[0].c_socket);
 	}
 	close(s_socket);
 }

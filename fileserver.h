@@ -27,4 +27,14 @@ class Pocket {
 	char ip[20];
 	
 };
+class Data {
+	public :
+	char unique_key[100];
+	char image_addr[200];
+};
+class Cctv_data {
+	public :
+	char cctv_id[5];
+	char ip[20];
+};
 const int type = 1;

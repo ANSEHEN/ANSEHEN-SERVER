@@ -1,5 +1,5 @@
-#include "server.h"
-
+#include "cctv.h"
+#include <stdio.h>
 CCTV::CCTV()
 {
 	id = NULL;
