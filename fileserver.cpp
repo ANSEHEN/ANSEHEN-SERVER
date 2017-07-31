@@ -60,14 +60,7 @@ int main()
 		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv_id,pocket[i].ip);
 	}*/ 
 		Cctv_data cctv_data; 
-		//pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 
-//		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
-//		strcpy(pocket[0].cctv_id,cctv_data.cctv_id);
-	
-	//	recv(pocket[0].c_socket, ip, strlen(ip)+1, 0);
-//		strcpy(pocket[0].ip,cctv_data.ip);
-//		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,pocket[0].cctv_id,pocket[0].ip);
 		pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
 
@@ -84,22 +77,12 @@ int main()
 			printf("initial setting of root snd cctv\n");	
 //		root_snd_cctv = get_send_cctv_info(msg.unique_key);
 		printf("msg : %s \n",msg.image_addr);
-		//pocket[0].c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
-		//recv(pocket[0].c_socket,&cctv_data, sizeof(cctv_data),0);
-
-		//printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[0].c_socket,cctv_data.cctv_id,cctv_data.ip);
-
-
-
-
-		//c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+//thread create  : thread 가져야하는 정보들 : cctvid, i imageaddr uniquekey 
                 //unique_key
 
 
                 n = strlen(msg.unique_key)+1;
-                //write(c_socket, msg.unique_key, n);
-		int retval;// = send(pocket[0].c_socket, msg.unique_key, n+1, 0);
-		//if(retval < 0) err_quit("send()");
+		int retval;
 
 		// FILE
 		FILE *fp = fopen(msg.image_addr, "rb");
@@ -114,16 +97,6 @@ int main()
 		
 
 		// 파일 이름 보내기
-/*
-		char filename[256];
-		strcpy(filename, msg.image_addr);
-		printf("filename : !!%s!!\n",filename);
-                n = strlen(filename)+1;
-                //write(c_socket, filename, n);
-		retval = send(pocket[0].c_socket, filename,n+1,  0);
-		if(retval < 0) err_quit("send()");
-		printf("kkk\n");
-*/
 		Data data;
 		strcpy(data.unique_key,msg.unique_key);
 		strcpy(data.image_addr,msg.image_addr);
@@ -168,8 +141,6 @@ int main()
 			}
 			else if(numread == 0 && numtotal == totalbytes){
 				printf("\n파일 전송 완료!: %d 바이트 전송됨\n", filesize);
-		//retval = send(c_socket, msg.unique_key, n+1, 0);
-		//if(retval < 0) err_quit("send()");
 				break;
 			}
 			else{
@@ -178,11 +149,9 @@ int main()
 			}
 		}
 		fclose(fp);
-	//	close(pocket[0].c_socket);
 	}
 
-		close(pocket[0].c_socket);
-	
+	close(pocket[0].c_socket);
 	close(s_socket);
 }
 Node* cctv_info_load()

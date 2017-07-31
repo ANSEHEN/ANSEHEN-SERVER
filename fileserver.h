@@ -32,9 +32,11 @@ class Data {
 	char unique_key[100];
 	char image_addr[200];
 };
-class Cctv_data {
+class Thr_data{
 	public :
-	char cctv_id[5];
-	char ip[20];
+	Data user_data;
+	Pocket pocket_data;
+	Thr_data(Data data, Pocket pocket) : user_data(data),pocket_data(pocket)
+	{}
 };
 const int type = 1;
