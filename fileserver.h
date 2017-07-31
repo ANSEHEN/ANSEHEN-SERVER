@@ -23,9 +23,12 @@ class mbuf {
 class Pocket {
 	public :
 	int c_socket;
+	Cctv_data cctv;
+};
+class Cctv_data {
+	public:
 	char cctv_id[5];
 	char ip[20];
-	
 };
 class Data {
 	public :
