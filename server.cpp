@@ -85,13 +85,13 @@ int main(void)
 		printf("before\n");
 		 mbuf msg;
 //test start
-/*		msg.mtype=1;
+		msg.mtype=1;
 		strcpy(msg.buf,"server sent\n");
 		strcpy(msg.unique_key,"1500518259066");
 		strcpy(msg.image_addr,"01064078205__1500339629631.jpg");
 		//set_send_cctv_info(root,msg.unique_key);
 		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
-             			perror("send fail ");*/
+             			perror("send fail ");
 //test end     
 	        c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		printf("after\n");
