@@ -87,9 +87,9 @@ int main(void)
 //test start
 		msg.mtype=1;
 		strcpy(msg.buf,"server sent\n");
-		strcpy(msg.unique_key,"1500518259066");
+		strcpy(msg.unique_key,"1501225104212");
 		strcpy(msg.image_addr,"01064078205__1500339629631.jpg");
-		//set_send_cctv_info(root,msg.unique_key);
+		set_send_cctv_info(root,msg.unique_key);
 		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
              			perror("send fail ");
 //test end     
@@ -196,7 +196,7 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
         }
-	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
 
 	query_stat = mysql_query(connection,query);
         if(query_stat != 0)
@@ -204,7 +204,7 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
 	}
 
-	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"4");
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
 
 	query_stat = mysql_query(connection,query);
         if(query_stat != 0)

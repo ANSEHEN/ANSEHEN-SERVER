@@ -59,7 +59,7 @@ int main()
 		recv(pocket[i].c_socket,&cctv_data, sizeof(cctv_data),0);
 		pocket[i].cctv=cctv_data;
 		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv.cctv_id,pocket[i].cctv.ip);
-		break; // test
+//		break; // test
 	} 
 
 
@@ -80,82 +80,33 @@ int main()
 		else
 			printf("initial setting of root snd cctv\n");	
 		snd_num_cctv=0;
-//		root_snd_cctv = get_send_cctv_info(msg.unique_key);
+		root_snd_cctv = get_send_cctv_info(msg.unique_key);
 		printf("msg : %s \n",msg.image_addr);
 //thread create  : thread 가져야하는 정보들 : cctvid, i imageaddr uniquekey 
 		//thread snd
-		Thread t;
-		Thr_data td(data,pocket[0]);
-		t.setThr(td);
-		t.run();
-                //unique_key
-/*
-
-                n = strlen(msg.unique_key)+1;
-		int retval;
-
-		// FILE
-		FILE *fp = fopen(msg.image_addr, "rb");
-		if(fp == NULL){
-			perror("파일 입출력 오류");
-			return 1;
-		}
-		else
+		Thread t[snd_num_cctv];
+		Thr_data td[snd_num_cctv];
+		Node *cur=root_snd_cctv;
+		int i=0;
+		while(cur!=NULL)
 		{
-			printf("lala\n");
-		}
-		
-
-		// 파일 이름,유니크키  보내기 
-		
-
-		send(pocket[0].c_socket, &data,sizeof(data),  0);
-
-
-		// 전송 시작할 위치(=현재의 파일 크기) 받기
-		int currbytes;
-		retval = recv(pocket[0].c_socket, (char *)&currbytes, sizeof(currbytes), MSG_WAITALL);
-		if(retval < 0) err_quit("recv()");
-		printf("### 옵셋 %d 바이트 지점부터 전송을 시작합니다. ###\n", currbytes);
-
-		// 파일 크기 얻기
-		fseek(fp, 0, SEEK_END);
-		int filesize = ftell(fp);
-		int totalbytes = filesize - currbytes;
-
-		// 전송할 데이터 크기 보내기
-		retval = send(pocket[0].c_socket, (char *)&totalbytes, sizeof(totalbytes), 0);
-		if(retval < 0) err_quit("send()");
-
-		// 파일 데이터 전송에 사용할 변수
-		char buf[BUFSIZE];
-		int numread;
-		int numtotal = 0;
-
-		// 파일 데이터 보내기
-		fseek(fp, currbytes, SEEK_SET); // 파일 포인터를 전송 시작 위치로 이동
-		while(1){
-			numread = fread(buf, 1, BUFSIZE, fp);
-			if(numread > 0){
-				retval = send(pocket[0].c_socket, buf, numread, 0);
-				if(retval < 0){
-					err_display("send()");
-					break;
+			td[i].user_data=data;
+			for(int j=0;j<max_cctv;j++)
+			{	
+				if(strcmp(cur->data->get_id(),pocket[j].cctv.cctv_id)==0)
+				{
+					td[i].pocket_data=pocket[j];
+					break;	
 				}
-				numtotal += numread;
-				printf("."); fflush(stdout); // 전송 상황을 표시
-				usleep(10000); // 전송 중단 실험을 위해 속도를 느리게 함
 			}
-			else if(numread == 0 && numtotal == totalbytes){
-				printf("\n파일 전송 완료!: %d 바이트 전송됨\n", filesize);
-				break;
-			}
-			else{
-				perror("파일 입출력 오류");
-				break;
-			}
+			cur=cur->rear;
+			i++;
 		}
-		fclose(fp);*/
+		for(i=0;i<snd_num_cctv;i++)
+		{
+			t[i].setThr(td[i]);
+			t[i].run();
+		}
 	}
 
 	for(int i=0;i<max_cctv;i++)
