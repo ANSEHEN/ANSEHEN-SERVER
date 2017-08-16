@@ -2,6 +2,8 @@
 
 #define PORT 9001
 #define ARG_MAX 6
+
+using namespace std;
 const char *host = (char*)"localhost";
 const char *user = (char*)"root";
 const char *pw = (char*)"bitiotansehen";
@@ -9,11 +11,10 @@ const char *db = (char*)"ansehen";
 char    buffer[BUFSIZ];
 int max_cctv;
 
-//int CCTV::total_cctv=0;
 static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 Node* cctv_info_load();
 void set_send_cctv_info(Node *root,char *uniqueKey);
-
+void bcn_sig_to_cctv(int *msgid);
 int main(void)
 {
         int     c_socket, s_socket;
@@ -78,6 +79,7 @@ int main(void)
 	int msgid;
 	msgid=msgget(1234,IPC_CREAT);
 
+	thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
 	while(1) {
 
 
@@ -85,7 +87,7 @@ int main(void)
 		printf("before\n");
 		 mbuf msg;
 //test start
-		msg.mtype=1;
+		msg.mtype=TYPE_FILE;
 		strcpy(msg.buf,"server sent\n");
 		strcpy(msg.unique_key,"1501225104212");
 		strcpy(msg.image_addr,"01064078205__1500339629631.jpg");
@@ -170,6 +172,23 @@ int main(void)
         return 0;
 }
 
+void bcn_sig_to_cctv(int* msgid)
+{
+	beacon_data msg;
+//TYPE_BEACON 2
+//type_beacon_c 4
+	while(1)
+	{
+		printf("wait for beacon signal\n");
+		msgrcv(*msgid,(void*)&msg,sizeof(msg),TYPE_BEACON,0);
+		printf("beacon signal (%s) of unique key (%s)\n",msg.BeaconId, msg.PrimaryKey);
+		msg.mtype=TYPE_BEACON_C;
+		if(msgsnd(*msgid,(void*)&msg,sizeof(msg),0)==-1)
+             			perror("send fail ");
+		printf("becaon signal is sent.(unique key : %s)\n",msg.PrimaryKey);
+	}
+}
+
 static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream)
 {
 	size_t written = fwrite(ptr, size, nmemb, (FILE *) stream);
@@ -196,13 +215,13 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
         }
-	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
+	//sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
 
-	query_stat = mysql_query(connection,query);
-        if(query_stat != 0)
+	//query_stat = mysql_query(connection,query);
+        /*if(query_stat != 0)
         {
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-	}
+	}*/
 
 	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
 
