@@ -57,13 +57,17 @@ int main(){
 	}
 	c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 	printf("socket connected\n");
+		printf("point 1.-------\n");
 		
 //test
 //////
 	while(1){
+		printf("Before: socket connecte\n");
+		c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+		printf("socket connected\n");
 		n=read(c_socket, buffer,sizeof(buffer));
 		ptr=strtok(buffer," ");
-		for(int i=0; i<ARG_MAX ;i++)
+		for(int i=0; i<=ARG_MAX ;i++)
 		{
 			if(ptr==NULL)
 				break;
@@ -74,8 +78,9 @@ int main(){
 		strcpy(bd.BeaconId,c_buff[0]);
 		strcpy(bd.PrimaryKey,c_buff[1]);
 		bd.mtype=type;
-		if(msgsnd(msgid,(void*)&msg,sizeof(class beacon_data),0)==-1)
+		if(msgsnd(msgid,(void*)&bd,sizeof(class beacon_data),0)==-1){
 			perror("send fail");
 		}
+		close(c_socket);
 	}
-}
+}	
