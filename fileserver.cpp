@@ -8,13 +8,7 @@ const char *db = (char*)"ansehen";
 char	buffer[BUFSIZ] = "hello, world";
 int max_cctv;
 int snd_num_cctv;
-/*
-void err_quit(const char *msg);
-void err_display(const char *msg);
-Node* get_send_cctv_info(char * uniqueKey);
-Node* cctv_info_load();
-void data_send(Thr_data thr);
-*/
+
 int main()
 {
 	int	c_socket, s_socket;
@@ -48,8 +42,8 @@ int main()
 	Node * root_all_cctv = cctv_info_load();
 	Node *root_snd_cctv = NULL;
 	Pocket pocket[max_cctv];
-//		msgrcv(msgid,(void*)&msg,sizeof(msg),type,0);
-	for(int i=0;i<max_cctv;i++)
+	int i;
+	for(i=0;i<max_cctv;i++)
 	{
 		char ip[20];
 		char id[5];
@@ -59,14 +53,18 @@ int main()
 		recv(pocket[i].c_socket,&cctv_data, sizeof(cctv_data),0);
 		pocket[i].cctv=cctv_data;
 		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv.cctv_id,pocket[i].cctv.ip);
-//		break; // test
-	} 
-
+		break;
+	}
+	Beacon_Pocket beacon;
+	beacon.num_pocket=i;
+	beacon.msgid=msgid;
+	beacon.pocket_data=pocket; 
+	thread beaconSignal(&bcn_sig_to_cctv,&beacon);
 
 	while(1) {
 		len = sizeof(c_addr);
-		msgrcv(msgid,(void*)&msg,sizeof(msg),type,0);
-		printf("rcv mesg!\n");
+		msgrcv(msgid,(void*)&msg,sizeof(msg),TYPE_FILE,0);
+		printf("rcv mesg from main server!\n");
 		printf("msg : %s \n",msg.buf);
 		printf("msg : %s \n",msg.unique_key);
 		
@@ -112,9 +110,61 @@ int main()
 	for(int i=0;i<max_cctv;i++)
 	{
 		close(pocket[i].c_socket);
+		break;
 	}
-	//close(pocket[0].c_socket);
 	close(s_socket);
+}
+void bcn_sig_to_cctv(Beacon_Pocket *t)
+{
+	beacon_data msg;
+       	MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+        char *ptr;
+	char cctv_id[10];
+	int c_socket;
+	while(1)
+	{
+		c_socket =-1;
+		printf("wait for beacon signal\n");
+		msgrcv(t->msgid,(void*)&msg,sizeof(msg),TYPE_BEACON_C,0);
+		printf("took a beacon signal (%s) of unique key (%s)\n",msg.BeaconId,msg.PrimaryKey);
+        	/* db */
+        	connection = mysql_init(NULL);
+        	if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        	{
+               	 	fprintf(stderr,"%s\n",mysql_error(connection));
+               		exit(1);
+        	}
+        	//Query _ CCTV_INFO
+		sprintf(query,"select * from CCTV_INFO where beacon_id ='%s'",msg.BeaconId);
+        	if(mysql_query(connection,query)) 
+        	{
+               		fprintf(stderr,"%s\n",mysql_error(connection));
+                	exit(1);
+        	}
+        	sql_result = mysql_use_result(connection);
+        	sql_row=mysql_fetch_row(sql_result);
+		strcpy(cctv_id,sql_row[0]);
+		printf("beaconid %s , cctvid %s\n",msg.BeaconId,cctv_id);
+        	mysql_free_result(sql_result);
+        	mysql_close(connection);
+		for(int i=0;i<t->num_pocket;i++)
+		{
+			if(strcmp(t->pocket_data[i].cctv.cctv_id,cctv_id)==0)
+			{
+				printf("c_socket %d\n",t->pocket_data[i].c_socket);				c_socket = t->pocket_data[i].c_socket;
+				break;
+			}
+		}
+		if(c_socket!= -1)
+		{
+			//data send
+			//data 전송 전에 미리 비컨 신호와 관련된 것을 보낸다고
+			//알리는 신호를 보내주는 것이 좋을 것 같음.
+		}
+	}
 }
 
 void data_send(Thr_data *thr)

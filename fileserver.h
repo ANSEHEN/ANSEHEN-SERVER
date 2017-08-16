@@ -15,13 +15,21 @@
 #include "cctv.h"
 #define PORT 9002
 #define BUFSIZE 1024
-
+#define TYPE_FILE 1
+#define TYPE_BEACON_C 4
 class mbuf {
 	public :
 	long mtype;
 	char buf[100];
 	char unique_key[100];
 	char image_addr[200];
+};
+
+class beacon_data{
+	public:
+	long mtype;
+	char BeaconId[30];
+	char PrimaryKey[100];
 };
 
 class Cctv_data {
@@ -76,4 +84,12 @@ class Thread{
 
 };
 
-const int type = 1;
+class Beacon_Pocket
+{
+	public :
+	Pocket *pocket_data;
+	int msgid;
+	int num_pocket;
+};
+void bcn_sig_to_cctv(Beacon_Pocket *t);
+
