@@ -79,7 +79,7 @@ int main(void)
 	int msgid;
 	msgid=msgget(1234,IPC_CREAT);
 
-//	thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
+	thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
 	while(1) {
 
 
@@ -99,7 +99,7 @@ int main(void)
 		printf("after\n");
         n=read(c_socket, buffer,sizeof(buffer));
 		buffer[strlen(buffer)+1]='\0';
-		printf("got : %s",buffer);
+		printf("got : %s\n",buffer);
 		ptr=strtok(buffer," ");
 
 		for(int i=0; i<ARG_MAX ;i++)

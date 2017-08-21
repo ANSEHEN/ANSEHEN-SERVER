@@ -59,7 +59,7 @@ int main()
 	beacon.num_pocket=i;
 	beacon.msgid=msgid;
 	beacon.pocket_data=pocket; 
-	//thread beaconSignal(&bcn_sig_to_cctv,&beacon);
+	thread beaconSignal(&bcn_sig_to_cctv,&beacon);
 
 
 	while(1) {
@@ -128,6 +128,7 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 	while(1)
 	{
 		c_socket =-1;
+		printf("==============================================================\n");
 		printf("wait for beacon signal\n");
 		msgrcv(t->msgid,(void*)&msg,sizeof(msg),TYPE_BEACON_C,0);
 		printf("took a beacon signal (%s) of unique key (%s)\n",msg.BeaconId,msg.PrimaryKey);
