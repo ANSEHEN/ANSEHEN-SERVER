@@ -1,6 +1,6 @@
 #include "server.h"
 
-#define PORT 9001
+#define PORT 9005
 #define ARG_MAX 6
 
 using namespace std;
@@ -79,7 +79,7 @@ int main(void)
 	int msgid;
 	msgid=msgget(1234,IPC_CREAT);
 
-	thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
+//	thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
 	while(1) {
 
 
@@ -87,17 +87,17 @@ int main(void)
 		printf("before\n");
 		 mbuf msg;
 //test start
-		msg.mtype=TYPE_FILE;
+/*		msg.mtype=TYPE_FILE;
 		strcpy(msg.buf,"server sent\n");
 		strcpy(msg.unique_key,"1501225104212");
 		strcpy(msg.image_addr,"01064078205__1500339629631.jpg");
 		set_send_cctv_info(root,msg.unique_key);
 		if(msgsnd(msgid,(void*)&msg,sizeof(struct mbuf),0)==-1)
-             			perror("send fail ");
+             			perror("send fail ");*/
 //test end     
-	        c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
+	    c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		printf("after\n");
-                n=read(c_socket, buffer,sizeof(buffer));
+        n=read(c_socket, buffer,sizeof(buffer));
 		buffer[strlen(buffer)+1]='\0';
 		printf("got : %s",buffer);
 		ptr=strtok(buffer," ");
@@ -166,6 +166,7 @@ int main(void)
 		strcpy(msg.image_addr,c_buff[4]);
 		if(msgsnd(msgid,(void*)&msg,sizeof(msg),0)==-1)
              			perror("send fail ");
+		set_send_cctv_info(root,msg.unique_key);
         }
         close(s_socket);
         mysql_close(connection);
@@ -215,13 +216,13 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
         }
-	//sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"2");
 
-	//query_stat = mysql_query(connection,query);
-        /*if(query_stat != 0)
+	query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
         {
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-	}*/
+	}
 
 	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
 
@@ -231,6 +232,13 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
         }
         
+	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
+
+	query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        }
         mysql_close(connection);
 }
 
