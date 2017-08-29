@@ -54,6 +54,7 @@ int main()
 		recv(pocket[i].c_socket,&cctv_data, sizeof(cctv_data),0);
 		pocket[i].cctv=cctv_data;
 		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv.cctv_id,pocket[i].cctv.ip);
+		break;
 	}
 	Beacon_Pocket beacon;
 	beacon.num_pocket=i;
@@ -112,6 +113,7 @@ int main()
 	for(int i=0;i<max_cctv;i++)
 	{
 		close(pocket[i].c_socket);
+		break;
 	}
 	close(s_socket);
 }

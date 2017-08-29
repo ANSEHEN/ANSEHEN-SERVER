@@ -30,3 +30,24 @@ class beacon_data{
 	char BeaconId[30];
 	char PrimaryKey[100];
 };
+class thread_data{
+		public:
+		int *s_socket;
+		Node *root;
+		char *uni_key;
+		thread_data(){};
+		thread_data(int *s,Node *r,char *u)
+		{
+			s_socket=s;
+			root=r;
+			uni_key=new char[strlen(u)+1];
+			strcpy(uni_key,u);
+			printf("[thread_data]u:%s\n",u);
+			printf("[thread_data]uni_key:%s\n",uni_key);
+		};
+		~thread_data()
+		{
+				delete uni_key;
+
+		}
+};

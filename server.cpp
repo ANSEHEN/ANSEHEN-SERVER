@@ -15,6 +15,8 @@ static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 Node* cctv_info_load();
 void set_send_cctv_info(Node *root,char *uniqueKey);
 void bcn_sig_to_cctv(int *msgid);
+void get_location(thread_data *data);
+//void get_location(int *s_socket,Node *root,char *uniqueKey);
 int main(void)
 {
         int     c_socket, s_socket;
@@ -111,7 +113,7 @@ int main(void)
 			printf("c_buff[%d] : %s\n",i,c_buff[i]);
 		}
 
-		sprintf(query,"insert into USER_INFO (phone_num,phone_num_input,name,pw,image_add,unique_key,start,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",c_buff[0],c_buff[1],c_buff[2],c_buff[3],c_buff[4],c_buff[5]);
+		sprintf(query,"insert into USER_INFO (phone_num,phone_num_input,name,pw,image_add,unique_key,path,end) values ('%s','%s','%s','%s','%s','%s','start', 'end')",c_buff[0],c_buff[1],c_buff[2],c_buff[3],c_buff[4],c_buff[5]);
 
 		query_stat = mysql_query(connection,query);
                 if(query_stat != 0)
@@ -159,20 +161,95 @@ int main(void)
 			// cleanup curl stuff 
 		curl_easy_cleanup(curl_handle);
                 close(c_socket);
+				printf("[main] thread data create\n");
+				thread_data threadData(&s_socket,root,c_buff[5]);
+				printf("[main] thread create\n");
+				printf("[main] s_socket:%d\n",s_socket);
+				thread location_thr(get_location,&threadData);
+				location_thr.join();
+				printf("[main] after creating a thread\n");
 		//intercommunication with fileserver	
-		msg.mtype=1;
+		/*msg.mtype=1;
 		strcpy(msg.buf,"server sent\n");
 		strcpy(msg.unique_key,c_buff[5]);
 		strcpy(msg.image_addr,c_buff[4]);
 		if(msgsnd(msgid,(void*)&msg,sizeof(msg),0)==-1)
              			perror("send fail ");
-		set_send_cctv_info(root,msg.unique_key);
+		set_send_cctv_info(root,msg.unique_key);*/
         }
         close(s_socket);
         mysql_close(connection);
         return 0;
 }
 
+//void get_location(int *s_socket,Node *root,char *uniqueKey)
+void get_location(thread_data *data)
+{
+        int     c_socket;
+        int query_stat;
+        MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+        char *ptr;
+        struct sockaddr_in  c_addr;
+		char r_uniqueKey[50],r_endPoint[BUFSIZ],r_allPath[BUFSIZ];
+		char s_check[10];
+		int *s_socket=data->s_socket;
+		Node *root=data->root;
+		socklen_t len = sizeof(c_addr);
+		printf("[get location]\n");
+		printf("[get location]s_socket : %d\n",*s_socket);
+	    c_socket = accept(*s_socket, (struct sockaddr *) &c_addr,&len);
+		printf("[get location] c_socket accepted\n");
+		printf("[get_location]uniqueKey : %s wait for location info\n",data->uni_key);
+
+		strcpy(s_check,"zero");
+
+        read(c_socket, r_uniqueKey,sizeof(r_uniqueKey));
+		printf("[get_location]got uniqueKey : *%s*\n",r_uniqueKey);
+		write(c_socket,s_check,strlen(s_check)+1);
+		
+		read(c_socket,r_endPoint,sizeof(r_endPoint));
+		printf("[get_location]got endPoint : *%s*\n",r_endPoint);
+		write(c_socket,s_check,strlen(s_check)+1);
+		for(;;)
+		{
+				read(c_socket,r_allPath,sizeof(r_allPath));
+				printf("[get_location]got allPath : *%s*\n",r_allPath);
+				if(strcmp(r_allPath,"one")==0)
+						break;
+				write(c_socket,s_check,strlen(s_check)+1);
+		}
+
+		write(c_socket,s_check,strlen(s_check)+1);
+/*		ptr=strtok(buffer," ");
+
+		for(int i=0; i<ARG_MAX ;i++)
+		{
+			if(ptr==NULL)
+				break;
+			strcpy(c_buff[i],ptr);
+			ptr= strtok(NULL," ");
+			printf("[get_location]c_buff[%d] : %s\n",i,c_buff[i]);
+		}*/
+
+        /* db */
+       /* connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }*/
+	/*sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
+
+/*	query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        }*/
+ //       mysql_close(connection);
+}
 void bcn_sig_to_cctv(int* msgid)
 {
 	beacon_data msg;
@@ -216,13 +293,13 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
         }
-	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"2");
+/*	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"2");
 
 	query_stat = mysql_query(connection,query);
         if(query_stat != 0)
         {
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-	}
+	}*/
 
 	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
 
@@ -232,13 +309,13 @@ void set_send_cctv_info(Node *root,char *uniqueKey)
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
         }
         
-	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
+	/*sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
 
 	query_stat = mysql_query(connection,query);
         if(query_stat != 0)
         {
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        }
+        }*/
         mysql_close(connection);
 }
 
