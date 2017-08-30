@@ -33,13 +33,11 @@ class beacon_data{
 class thread_data{
 		public:
 		int *s_socket;
-		Node *root;
 		char *uni_key;
 		thread_data(){};
-		thread_data(int *s,Node *r,char *u)
+		thread_data(int *s,char *u)
 		{
 			s_socket=s;
-			root=r;
 			uni_key=new char[strlen(u)+1];
 			strcpy(uni_key,u);
 			printf("[thread_data]u:%s\n",u);

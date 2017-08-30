@@ -6,6 +6,7 @@ CCTV::CCTV()
 	beacon_id=NULL;
 	ip_addr=NULL;
 	location_addr=NULL;
+	check=false;
 }
 
 CCTV::CCTV(char* id_p,char *b_id_p,char *ip_p,char* lo_p)
@@ -14,12 +15,13 @@ CCTV::CCTV(char* id_p,char *b_id_p,char *ip_p,char* lo_p)
 	beacon_id=b_id_p;
 	ip_addr=ip_p;
 	location_addr=lo_p;
+	check=false;
 }
 CCTV::~CCTV()
 {
         printf("delete CCTV id : %s\n",id);
-	if(id!=NULL)
-		delete id;
+		if(id!=NULL)
+				delete id;
         if(beacon_id!=NULL)
                 delete beacon_id;
         if(ip_addr!=NULL)
@@ -45,6 +47,14 @@ char* CCTV::get_ip() const
 char* CCTV::get_location() const
 {
 	return location_addr;
+}
+void CCTV::set_check()
+{
+		check=true;
+}
+bool CCTV::get_check()
+{
+		return check;
 }
 Node::Node()
 {

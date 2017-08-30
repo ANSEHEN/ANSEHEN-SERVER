@@ -1,6 +1,7 @@
 class CCTV
 {
         private :
+		bool check;
         char * id;
         char *beacon_id;
         char * ip_addr;
@@ -13,6 +14,8 @@ class CCTV
         char* get_beacon_id() const;
         char* get_ip() const;
         char* get_location() const;
+		void set_check();
+		bool get_check();
 	~CCTV();
 };
 
