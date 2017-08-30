@@ -223,16 +223,7 @@ void get_location(thread_data *data)
 		}
 
 		write(c_socket,s_check,strlen(s_check)+1);
-/*		ptr=strtok(buffer," ");
-
-		for(int i=0; i<ARG_MAX ;i++)
-		{
-			if(ptr==NULL)
-				break;
-			strcpy(c_buff[i],ptr);
-			ptr= strtok(NULL," ");
-			printf("[get_location]c_buff[%d] : %s\n",i,c_buff[i]);
-		}*/
+		//set_send_cctv_info(root,data->uni_key);
 
         /* db */
        /* connection = mysql_init(NULL);
