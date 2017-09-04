@@ -172,6 +172,12 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 			send(c_socket, &signal,sizeof(signal),  0);
 			printf("ready to send beacon signal %s state : %d\n",msg.PrimaryKey,msg.state);
 			send(c_socket,msg.PrimaryKey,strlen(msg.PrimaryKey)+1,0);
+			if(signal==BEACONDISCONNECT)
+			{
+					int result;
+					recv(c_socket,&result,sizeof(result),0);
+					printf("[bcn-sig-to-cctv]unique key : %s result : %d\n",msg.PrimaryKey,result);
+			}
 			
 
 		}

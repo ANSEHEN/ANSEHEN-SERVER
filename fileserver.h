@@ -17,6 +17,7 @@
 #define BUFSIZE 1024
 #define TYPE_FILE 1
 #define TYPE_BEACON_C 4
+#define BEACONDISCONNECT 3
 class mbuf {
 	public :
 	long mtype;
