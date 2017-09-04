@@ -120,11 +120,11 @@ int main()
 void bcn_sig_to_cctv(Beacon_Pocket *t)
 {
 	beacon_data msg;
-       	MYSQL *connection;
-        MYSQL_RES  *sql_result;
-        MYSQL_ROW sql_row;
-        char query[BUFSIZ];
-        char *ptr;
+    MYSQL *connection;
+    MYSQL_RES  *sql_result;
+    MYSQL_ROW sql_row;
+    char query[BUFSIZ];
+    char *ptr;
 	char cctv_id[10];
 	int c_socket;
 	while(1)
@@ -168,10 +168,11 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 			//data send
 			//data 전송 전에 미리 비컨 신호와 관련된 것을 보낸다고
 			//알리는 신호를 보내주는 것이 좋을 것 같음.
-			int signal=2;
+			int signal=msg.state;
 			send(c_socket, &signal,sizeof(signal),  0);
-			printf("ready to send beacon signali %s\n",msg.PrimaryKey);
+			printf("ready to send beacon signal %s state : %d\n",msg.PrimaryKey,msg.state);
 			send(c_socket,msg.PrimaryKey,strlen(msg.PrimaryKey)+1,0);
+			
 
 		}
 	}

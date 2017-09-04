@@ -317,11 +317,13 @@ void bcn_sig_to_cctv(int* msgid)
 	beacon_data msg;
 //TYPE_BEACON 2
 //type_beacon_c 4
+	// BEACON_DISCONNECT 3
 	while(1)
 	{
 		printf("wait for beacon signal\n");
 		msgrcv(*msgid,(void*)&msg,sizeof(msg),TYPE_BEACON,0);
 		printf("beacon signal (%s) of unique key (%s)\n",msg.BeaconId, msg.PrimaryKey);
+
 		msg.mtype=TYPE_BEACON_C;
 		if(msgsnd(*msgid,(void*)&msg,sizeof(msg),0)==-1)
              			perror("send fail ");

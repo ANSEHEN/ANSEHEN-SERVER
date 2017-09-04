@@ -13,12 +13,13 @@
 #include <thread>
 
 #define PORT 9003
-#define BUFSIZ 1024
 #define ARG_MAX 2
+#define BEACON_CONNECT 2
 
 class beacon_data{
 	public:
 	long mtype;
+	int state;
 	char BeaconId[30];
 	char PrimaryKey[100];
 };
@@ -78,6 +79,7 @@ int main(){
 		strcpy(bd.BeaconId,c_buff[0]);
 		strcpy(bd.PrimaryKey,c_buff[1]);
 		bd.mtype=type;
+		bd.state=BEACON_CONNECT;
 		if(msgsnd(msgid,(void*)&bd,sizeof(class beacon_data),0)==-1){
 			perror("send fail");
 		}

@@ -27,6 +27,7 @@ class mbuf {
 class beacon_data{
 	public:
 	long mtype;
+	int state;
 	char BeaconId[30];
 	char PrimaryKey[100];
 };

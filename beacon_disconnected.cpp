@@ -28,27 +28,22 @@
 
 #define PORT 9004
 
-#define BUFSIZ 1024
-
 #define ARG_MAX 2
 
-
+#define BEACON_DISCONNECT 3
 
 class beacon_data{
-
 	public:
-
 	long mtype;
-
+	int state;
 	char BeaconId[30];
-
 	char PrimaryKey[100];
 
 };
 
 char buffer[BUFSIZ];
 
-const int type = 3;
+const int type = 2;
 
 int main(){
 
@@ -157,6 +152,7 @@ int main(){
 		strcpy(bd.PrimaryKey,c_buff[1]);
 
 		bd.mtype=type;
+		bd.state=BEACON_DISCONNECT; 
 
 		if(msgsnd(msgid,(void*)&bd,sizeof(class beacon_data),0)==-1){
 
