@@ -112,6 +112,7 @@ int main(void)
             if(query_stat != 0)
             {
  		           fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+				   //duplicatekey
                         return 1;
             }
 
