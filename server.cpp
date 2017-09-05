@@ -166,13 +166,12 @@ int main(void)
 
 			close(c_socket);
 			//intercommunication with fileserver	
-			/*msg.mtype=1;
+			msg.mtype=1;
 			strcpy(msg.buf,"server sent\n");
 			strcpy(msg.unique_key,c_buff[5]);
 			strcpy(msg.image_addr,c_buff[4]);
 			if(msgsnd(msgid,(void*)&msg,sizeof(msg),0)==-1)
              		perror("send fail ");
-			set_send_cctv_info(root,msg.unique_key);*/
         }
         close(s_socket);
         mysql_close(connection);
@@ -277,7 +276,7 @@ void get_location(thread_data *data)
 										cur->data->set_check();
 										printf("[get CCTV]cctv_id: %s Lat: %lf,Lon: %lf\n",cur->data->get_id(),latitude_c,longitude_c);
 										// unique key 와 cctv_id를 이용하여 db에 SEND_CCTV_INFO에 저장 
-										sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",r_uniqueKey,cur->data->get_id());
+										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id) values ('%s','%s')",r_uniqueKey,cur->data->get_id());
 
 										query_stat = mysql_query(connection,query);
         								if(query_stat != 0)
