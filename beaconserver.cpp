@@ -38,7 +38,6 @@ int main(){
 	msgid=msgget(1234,IPC_CREAT);
 	
 	beacon_data bd;
-	//mbuf msg;
 
 	s_socket = socket(PF_INET, SOCK_STREAM, 0);
 
@@ -56,16 +55,11 @@ int main(){
 		printf("listen Fail\n");
 		return -1;
 	}
-	c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
-	printf("socket connected\n");
-		printf("point 1.-------\n");
 		
-//test
-//////
 	while(1){
-		printf("Before: socket connecte\n");
+		printf("[beacon_server] Before: socket connecte\n");
 		c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
-		printf("socket connected\n");
+		printf("[beacon_server] socket connected\n");
 		n=read(c_socket, buffer,sizeof(buffer));
 		ptr=strtok(buffer," ");
 		for(int i=0; i<=ARG_MAX ;i++)
@@ -74,7 +68,7 @@ int main(){
 				break;
 			strcpy(c_buff[i],ptr);
 			ptr= strtok(NULL," ");
-			printf("c_buff[%d] : %s\n",i,c_buff[i]);
+			printf("[beacon_server] c_buff[%d] : %s\n",i,c_buff[i]);
 		}
 		strcpy(bd.BeaconId,c_buff[0]);
 		strcpy(bd.PrimaryKey,c_buff[1]);

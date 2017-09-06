@@ -13,7 +13,6 @@ int max_cctv;
 
 static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 Node* cctv_info_load();
-void set_send_cctv_info(Node *root,char *uniqueKey);
 void bcn_sig_to_cctv(int *msgid);
 void get_location(thread_data *data);
 
@@ -276,7 +275,7 @@ void get_location(thread_data *data)
 										cur->data->set_check();
 										printf("[get CCTV]cctv_id: %s Lat: %lf,Lon: %lf\n",cur->data->get_id(),latitude_c,longitude_c);
 										// unique key 와 cctv_id를 이용하여 db에 SEND_CCTV_INFO에 저장 
-										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id) values ('%s','%s')",r_uniqueKey,cur->data->get_id());
+										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id,cnt) values ('%s','%s',0)",r_uniqueKey,cur->data->get_id());
 
 										query_stat = mysql_query(connection,query);
         								if(query_stat != 0)
@@ -293,7 +292,6 @@ void get_location(thread_data *data)
 		}
 		write(c_socket,s_check,strlen(s_check)+1);
 		close(c_socket);
-		//set_send_cctv_info(root,data->uni_key);
 
         /* db */
         connection = mysql_init(NULL);
@@ -320,13 +318,83 @@ void bcn_sig_to_cctv(int* msgid)
 	// BEACON_DISCONNECT 3
 	while(1)
 	{
-		printf("wait for beacon signal\n");
+		printf("[bcn_sig_to_cctv]wait for beacon signal\n");
 		msgrcv(*msgid,(void*)&msg,sizeof(msg),TYPE_BEACON,0);
-		printf("beacon signal (%s) of unique key (%s)\n",msg.BeaconId, msg.PrimaryKey);
+		printf("[bcn_sig_to_cctv]beacon signal (%s) of unique key (%s)\n",msg.BeaconId, msg.PrimaryKey);
 
+		//check
+
+        MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+
+		/* db */
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+        }
+		sprintf(query,"select * from SEND_CCTV_INFO join CCTV_INFO on SEND_CCTV_INFO.cctv_id = CCTV_INFO.cctv_id where unique_key = '%s'",msg.PrimaryKey);
+
+		int query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        }
+        sql_result = mysql_use_result(connection);
+        bool check=false;
+        while((sql_row=mysql_fetch_row(sql_result))!=NULL)
+        {
+			if(strcmp(msg.BeaconId,sql_row[5])==0)
+			{		
+					check=true;
+					int cnt = atoi(sql_row[3]);
+					printf("[bcn_sig_to_cctv]true count %d state %d\n",cnt,msg.state);
+					if(cnt==0&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
+					{
+							cnt++;
+							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
+
+							query_stat = mysql_query(connection,query);
+        					if(query_stat != 0)
+        					{
+                				fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        					};
+							printf("[bcn_sig_to_cctv]fist access bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
+							
+					}
+					else if(cnt==1&&msg.state==TYPE_BEACON_L)//비컨 영역 밖으로 처음 나감
+					{
+							cnt++;
+							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
+
+							query_stat = mysql_query(connection,query);
+        					if(query_stat != 0)
+        					{
+                				fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        					};
+							printf("[bcn_sig_to_cctv]fist out signal  bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
+					}
+					else
+					{
+							check =false;
+					}
+
+					break;
+			}
+        }
+        mysql_free_result(sql_result);
+        mysql_close(connection);
+		if(check ==false)
+		{
+				printf("[bcn_sig_to_cctv]false, bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
+				continue;
+		}
 		msg.mtype=TYPE_BEACON_C;
 		if(msgsnd(*msgid,(void*)&msg,sizeof(msg),0)==-1)
-             			perror("send fail ");
+             		perror("send fail ");
 		printf("becaon signal is sent.(unique key : %s)\n",msg.PrimaryKey);
 	}
 }
@@ -337,51 +405,6 @@ static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream)
 	return written;
 }
 
-void set_send_cctv_info(Node *root,char *uniqueKey)
-{
- 	
-        Node *cur =root;
-
-        int query_stat;
-        MYSQL *connection;
-        MYSQL_RES  *sql_result;
-        MYSQL_ROW sql_row;
-        char query[BUFSIZ];
-        char *ptr;
-
-
-        /* db */
-        connection = mysql_init(NULL);
-        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
-        {
-                fprintf(stderr,"%s\n",mysql_error(connection));
-                exit(1);
-        }
-		/*	sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"2");
-
-		query_stat = mysql_query(connection,query);
-        if(query_stat != 0)
-        {
-                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-		}*/
-
-		sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"3");
-
-		query_stat = mysql_query(connection,query);
-        if(query_stat != 0)
-        {
-                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        }
-        
-		/*sprintf(query,"insert into SEND_CCTV_INFO values ('%s','%s')",uniqueKey,"1");
-
-		query_stat = mysql_query(connection,query);
-        if(query_stat != 0)
-        {
-                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        }*/
-        mysql_close(connection);
-}
 
 Node* cctv_info_load()
 {
