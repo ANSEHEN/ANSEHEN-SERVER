@@ -15,6 +15,7 @@ static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream);
 Node* cctv_info_load();
 void bcn_sig_to_cctv(int *msgid);
 void get_location(thread_data *data);
+void result_to_android(int *msgid);
 
 int main(void)
 {
@@ -83,6 +84,7 @@ int main(void)
 		msgid=msgget(1234,IPC_CREAT);
 
 		thread beaconSignaltoCCTV(&bcn_sig_to_cctv,&msgid);
+		thread resultSignaltoAndroid(&result_to_android,&msgid);
 		while(1) 
 		{
             len = sizeof(c_addr);
@@ -175,6 +177,39 @@ int main(void)
         close(s_socket);
         mysql_close(connection);
         return 0;
+}
+
+void result_to_android(int *msgid)
+{
+		// 하는 중.
+	mbuf msg;
+	while(1)
+	{
+		printf("[result_to_android]wait for result\n");
+		msgrcv(*msgid,(void*)&msg,sizeof(msg),TYPE_RESULT,0);
+		printf("[result_to_android] unique key (%s) result %d cctv : %s\n",msg.unique_key,msg.result,msg.buf);
+
+        MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+
+		/* db */
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+                exit(1);
+		}
+		sprintf(query,"update SEND_CCTV_INFO set result = %d where unique_key = '%s' and cctv_id = '%s'",msg.result,msg.unique_key,msg.buf);
+
+		int query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        };
+        mysql_close(connection);
+	}
 }
 
 void get_location(thread_data *data)

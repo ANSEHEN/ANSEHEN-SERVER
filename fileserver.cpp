@@ -17,7 +17,6 @@ int main()
 	int	n;
 	int msgid;
 	
-	
 	msgid=msgget(1234,IPC_CREAT);
 	
 	mbuf msg;
@@ -53,7 +52,7 @@ int main()
 		Cctv_data cctv_data; 
 		recv(pocket[i].c_socket,&cctv_data, sizeof(cctv_data),0);
 		pocket[i].cctv=cctv_data;
-		printf("well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv.cctv_id,pocket[i].cctv.ip);
+		printf("[fileserver] well connected c_socket : %d, cctv_id : %s, ip : %s\n",pocket[i].c_socket,pocket[i].cctv.cctv_id,pocket[i].cctv.ip);
 	}
 	Beacon_Pocket beacon;
 	beacon.num_pocket=i;
@@ -66,22 +65,22 @@ int main()
 		len = sizeof(c_addr);
 		msgrcv(msgid,(void*)&msg,sizeof(msg),TYPE_FILE,0);
 		printf("=======================================================\n");
-		printf("rcv mesg from main server!\n");
-		printf("msg : %s \n",msg.buf);
-		printf("msg : %s \n",msg.unique_key);
+		printf("[fileserver] rcv mesg from main server!\n");
+		printf("[fileserver] msg : %s \n",msg.buf);
+		printf("[fileserver] msg : %s \n",msg.unique_key);
 		
 		Data data;
 		strcpy(data.unique_key,msg.unique_key);
 		strcpy(data.image_addr,msg.image_addr);
-		printf("unique : %s\n",data.unique_key);
-		printf("image : %s\n",data.image_addr);
+		printf("[fileserver] unique : %s\n",data.unique_key);
+		printf("[fileserver] image : %s\n",data.image_addr);
 		if(root_snd_cctv!=NULL)
 			delete root_snd_cctv;
 		else
 			printf("initial setting of root snd cctv\n");	
 		snd_num_cctv=0;
 		root_snd_cctv = get_send_cctv_info(msg.unique_key);
-		printf("msg : %s \n",msg.image_addr);
+		printf("[fileserver] msg : %s \n",msg.image_addr);
 //thread create  : thread 가져야하는 정보들 : cctvid, i imageaddr uniquekey 
 		//thread snd
 		Thread t[snd_num_cctv];
@@ -129,9 +128,9 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 	{
 		c_socket =-1;
 		printf("==============================================================\n");
-		printf("wait for beacon signal\n");
+		printf("[bcn_sig_to_cctv]wait for beacon signal\n");
 		msgrcv(t->msgid,(void*)&msg,sizeof(msg),TYPE_BEACON_C,0);
-		printf("took a beacon signal (%s) of unique key (%s)\n",msg.BeaconId,msg.PrimaryKey);
+		printf("[bcn_sig_to_cctv]took a beacon signal (%s) of unique key (%s)\n",msg.BeaconId,msg.PrimaryKey);
        	/* db */
        	connection = mysql_init(NULL);
        	if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
@@ -149,14 +148,14 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
        	sql_result = mysql_use_result(connection);
        	sql_row=mysql_fetch_row(sql_result);
 		strcpy(cctv_id,sql_row[0]);
-		printf("beaconid %s , cctvid %s\n",msg.BeaconId,cctv_id);
+		printf("[bcn_sig_to_cctv]beaconid %s , cctvid %s\n",msg.BeaconId,cctv_id);
        	mysql_free_result(sql_result);
        	mysql_close(connection);
 		for(int i=0;i<t->num_pocket;i++)
 		{
 			if(strcmp(t->pocket_data[i].cctv.cctv_id,cctv_id)==0)
 			{
-				printf("c_socket %d\n",t->pocket_data[i].c_socket);	
+				printf("[bcn_sig_to_cctv]c_socket %d\n",t->pocket_data[i].c_socket);	
 				c_socket = t->pocket_data[i].c_socket;
 				break;
 			}
@@ -168,13 +167,19 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 			//알리는 신호를 보내주는 것이 좋을 것 같음.
 			int signal=msg.state;
 			send(c_socket, &signal,sizeof(signal),  0);
-			printf("ready to send beacon signal %s state : %d\n",msg.PrimaryKey,msg.state);
+			printf("[bcn_sig_to_cctv]ready to send beacon signal %s state : %d\n",msg.PrimaryKey,msg.state);
 			send(c_socket,msg.PrimaryKey,strlen(msg.PrimaryKey)+1,0);
 			if(signal==BEACONDISCONNECT)
 			{
 					int result;
+					mbuf msg_;
 					recv(c_socket,&result,sizeof(result),0);
 					printf("[bcn-sig-to-cctv]unique key : %s result : %d\n",msg.PrimaryKey,result);
+					msg_.mtype =TYPE_RESULT;
+					strcpy(msg_.unique_key,msg.PrimaryKey);
+					strcpy(msg_.buf,cctv_id);
+					msg_.result=result;
+					msgsnd(t->msgid,(void*)&msg_,sizeof(msg_),0);
 			}
 			
 
@@ -185,15 +190,15 @@ void bcn_sig_to_cctv(Beacon_Pocket *t)
 void data_send(Thr_data *thr)
 {
 	int retval;
-	printf("c_socket : %d, cctv_id : %s, cctv_ip : %s\n",thr->pocket_data.c_socket,thr->pocket_data.cctv.cctv_id,thr->pocket_data.cctv.ip);
-	printf("uniqueKey : %s, image_addr : %s\n",thr->user_data.unique_key,thr->user_data.image_addr);
+	printf("[data_send thread]c_socket : %d, cctv_id : %s, cctv_ip : %s\n",thr->pocket_data.c_socket,thr->pocket_data.cctv.cctv_id,thr->pocket_data.cctv.ip);
+	printf("[data_send thread]uniqueKey : %s, image_addr : %s\n",thr->user_data.unique_key,thr->user_data.image_addr);
 	FILE *fp = fopen(thr->user_data.image_addr, "rb");
 	if(fp == NULL){
 		perror("파일 입출력 오류");
 	}
 	else
 	{
-		printf("lala\n");
+		printf("[data_send thread]lala\n");
 	}
 
 	int signal=1;
@@ -210,7 +215,7 @@ void data_send(Thr_data *thr)
 	int currbytes;
 	retval = recv(thr->pocket_data.c_socket, (char *)&currbytes, sizeof(currbytes), MSG_WAITALL);
 	if(retval < 0) err_quit("recv()");
-	printf("### 옵셋 %d 바이트 지점부터 전송을 시작합니다. ###\n", currbytes);
+	printf("[data_send thread]### 옵셋 %d 바이트 지점부터 전송을 시작합니다. ###\n", currbytes);
 
 	// 파일 크기 얻기
 	fseek(fp, 0, SEEK_END);
@@ -240,7 +245,7 @@ void data_send(Thr_data *thr)
 			usleep(10000); // 전송 중단 실험을 위해 속도를 느리게 함
 		}
 		else if(numread == 0 && numtotal == totalbytes){
-			printf("\n파일 전송 완료!: %d 바이트 전송됨\n", filesize);
+			printf("\n[data_send thread]파일 전송 완료!: %d 바이트 전송됨\n", filesize);
 			break;
 		}
 		else{
@@ -372,9 +377,9 @@ Node* get_send_cctv_info(char * uniqueKey)
         while((sql_row=mysql_fetch_row(sql_result))!=NULL)
         {
 			num++;
-			printf("sql result : %s\n",sql_row[0]);
+			printf("[get_send_cctv_info]sql result : %s\n",sql_row[0]);
         }
-	printf("num of rows %s : %d\n",uniqueKey,num); 
+	printf("[get_send_cctv_info]num of rows %s : %d\n",uniqueKey,num); 
 	snd_num_cctv=num;
     mysql_free_result(sql_result);
 	
@@ -388,32 +393,31 @@ Node* get_send_cctv_info(char * uniqueKey)
         }
         sql_result = mysql_use_result(connection);
         int i=0;
-		printf("before %s\n",uniqueKey);
+		printf("[get_send_cctv_info]before %s\n",uniqueKey);
         while((sql_row=mysql_fetch_row(sql_result))!=NULL)
         {
 				printf("\nsql_ get_send_cctv_info\n");
 				strcpy(cctv_id[i],sql_row[1]);
-				printf("%d cctv_id : %s\n",i,cctv_id[i]);
+				printf("[get_send_cctv_info]%d cctv_id : %s\n",i,cctv_id[i]);
 				i++;	
         }
-		printf("after %s\n",uniqueKey);
+		printf("[get_send_cctv_info]after %s\n",uniqueKey);
 
         mysql_free_result(sql_result);
 	
         //Query _ CCTV_INFO
 	for(i=0;i<num;i++)
 	{
-			printf("for loop\n");
+			printf("[get_send_cctv_info]for loop\n");
 		sprintf(query,"select * from CCTV_INFO where cctv_id = '%s'",cctv_id[i]);
-		printf("query : *%s*\n",query);
+		printf("[get_send_cctv_info]query : *%s*\n",query);
         	if(mysql_query(connection,query)) 
 	        {
        		         fprintf(stderr,"%s\n",mysql_error(connection));
                		 exit(1);
        		}
-			printf("ifififi\n");
        		sql_result = mysql_use_result(connection);
-			printf("lulu\n");
+			printf("[get_send_cctv_info]\n");
        		sql_row=mysql_fetch_row(sql_result);
                 char *id=new char[5];
                 strcpy(id,sql_row[0]);
@@ -437,14 +441,13 @@ Node* get_send_cctv_info(char * uniqueKey)
 
 		mysql_free_result(sql_result);
 	}
-	printf("out\n");
 
-        mysql_close(connection);
+     mysql_close(connection);
 	//check if info is right
 	cur= root;
 	while(cur!=NULL)
 	{
-		printf("id :%s, ip : %s\n",cur->data->get_id(),cur->data->get_ip());
+		printf("[get_send_cctv_info]id :%s, ip : %s\n",cur->data->get_id(),cur->data->get_ip());
 		cur=cur->rear;
 	}
 	num=0;

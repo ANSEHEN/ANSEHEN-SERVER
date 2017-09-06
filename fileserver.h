@@ -18,12 +18,14 @@
 #define TYPE_FILE 1
 #define TYPE_BEACON_C 4
 #define BEACONDISCONNECT 3
+#define TYPE_RESULT 5
 class mbuf {
 	public :
 	long mtype;
 	char buf[100];
 	char unique_key[100];
 	char image_addr[200];
+	int result;
 };
 
 class beacon_data{
