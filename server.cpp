@@ -181,7 +181,7 @@ int main(void)
 
 void result_to_android(int *msgid)
 {
-		// 하는 중.
+	// 하는 중.
 	mbuf msg;
 	while(1)
 	{
@@ -380,6 +380,7 @@ void bcn_sig_to_cctv(int* msgid)
         }
         sql_result = mysql_use_result(connection);
         bool check=false;
+		int state;
         while((sql_row=mysql_fetch_row(sql_result))!=NULL)
         {
 			if(strcmp(msg.BeaconId,sql_row[5])==0)
@@ -387,46 +388,45 @@ void bcn_sig_to_cctv(int* msgid)
 					check=true;
 					int cnt = atoi(sql_row[3]);
 					printf("[bcn_sig_to_cctv]true count %d state %d\n",cnt,msg.state);
-					if(cnt==0&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
+					// 조건문 체크해 볼 것.
+					if(strcpy(sql_row[2],"0")==0&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
 					{
 							cnt++;
 							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
 
-							query_stat = mysql_query(connection,query);
-        					if(query_stat != 0)
-        					{
-                				fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        					};
-							printf("[bcn_sig_to_cctv]fist access bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
+							state=1;
+							printf("[bcn_sig_to_cctv] access bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
 							
 					}
-					else if(cnt==1&&msg.state==TYPE_BEACON_L)//비컨 영역 밖으로 처음 나감
+					else if(msg.state==TYPE_BEACON_L)//비컨 영역 밖으로 처음 나감
 					{
 							cnt++;
 							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
-
-							query_stat = mysql_query(connection,query);
-        					if(query_stat != 0)
-        					{
-                				fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        					};
+							state=2;
 							printf("[bcn_sig_to_cctv]fist out signal  bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
 					}
 					else
 					{
 							check =false;
 					}
-
 					break;
 			}
         }
         mysql_free_result(sql_result);
-        mysql_close(connection);
 		if(check ==false)
 		{
 				printf("[bcn_sig_to_cctv]false, bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
 				continue;
 		}
+		if(state==1||state==2)
+		{
+			query_stat = mysql_query(connection,query);
+        	if(query_stat != 0)
+        	{
+                fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        	};
+		}
+        mysql_close(connection);
 		msg.mtype=TYPE_BEACON_C;
 		if(msgsnd(*msgid,(void*)&msg,sizeof(msg),0)==-1)
              		perror("send fail ");
