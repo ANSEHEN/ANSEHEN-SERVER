@@ -399,7 +399,7 @@ void bcn_sig_to_cctv(int* msgid)
 							printf("[bcn_sig_to_cctv] access bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
 							
 					}
-					else if(msg.state==TYPE_BEACON_L)//비컨 영역 밖으로 처음 나감
+					else if(!(rs==1)&&msg.state==TYPE_BEACON_L)//비컨 영역 밖으로 처음 나감
 					{
 							cnt++;
 							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
