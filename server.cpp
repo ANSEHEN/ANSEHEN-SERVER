@@ -387,13 +387,14 @@ void bcn_sig_to_cctv(int* msgid)
 			{		
 					check=true;
 					int cnt = atoi(sql_row[3]);
-					printf("[bcn_sig_to_cctv]true count %d state %d\n",cnt,msg.state);
+					int rs = atoi(sql_row[2]);
+					printf("[bcn_sig_to_cctv]true count %d state %d result %d\n",cnt,msg.state,rs);
 					// 조건문 체크해 볼 것.
-					if(strcpy(sql_row[2],"0")==0&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
+
+					if((rs==0)&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
 					{
 							cnt++;
 							sprintf(query,"update SEND_CCTV_INFO set cnt = %d where unique_key = '%s' and cctv_id = '%s'",cnt,msg.PrimaryKey,sql_row[1]);
-
 							state=1;
 							printf("[bcn_sig_to_cctv] access bcn %s, unique_key %s\n",msg.BeaconId, msg.PrimaryKey);
 							
