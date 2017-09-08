@@ -264,6 +264,9 @@ void Thread::run()
 {
 	thread snd(&data_send,&thr_data);
 	snd.join();
+//	printf("[Thread::run]before detach\n");
+//	snd.detach();
+//	printf("[Thread::run]after detach\n");
 } 
 void Thread::setThr(Thr_data t)
 {
