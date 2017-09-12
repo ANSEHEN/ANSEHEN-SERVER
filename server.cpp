@@ -27,7 +27,6 @@ int main(void)
         s_addr.sin_family = AF_INET;
         s_addr.sin_port = htons(PORT);
         ////////////////////////////////////////
-		int msgid;
 		msgid=msgget(1234,IPC_CREAT);
 
 		/* CCTV Information*/
@@ -47,8 +46,8 @@ int main(void)
         }
 	
 
-		//thread beaconSignaltoCCTV(bcn_sig_to_cctv,&msgid);
-		//thread resultSignaltoAndroid(&result_to_android,&msgid);
+		thread beaconSignaltoCCTV(bcn_sig_to_cctv,&msgid);
+		thread resultSignaltoAndroid(result_to_android,&msgid);
 
 		vector<Thread> thr;
 		vector<int> c_socket;
@@ -203,7 +202,7 @@ void result_to_android(int *msgid)
         if(query_stat != 0)
         {
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        };
+        }
         mysql_close(connection);
 	}
 }
