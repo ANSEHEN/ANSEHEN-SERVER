@@ -219,7 +219,7 @@ void result_to_android(int *msgid)
         }
         mysql_close(connection);
 		
-		sprintf(query,"curl -d \"uniqueKey=%s&result=%d\" http://13.124.164.203/main_set_result.php",msg.unique_key,msg.result);
+		sprintf(query,"curl -d \"uniqueKey=%s&result=%d&CCTVID=%s\" http://13.124.164.203/main_set_result.php",msg.unique_key,msg.result.msg.buf);
 		system(query);
 		printf("[result_to_android]\n");
 	}
