@@ -71,6 +71,16 @@ int main(void)
         return 0;
 }
 
+void receive_state_from_android(int *csocket)
+{
+		int c_socket=*csocket;
+		MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+		char *ptr;
+		printf("[receive state]\n");
+}
 void receive_data_from_android(int *csocket)
 {
 		mbuf msg;
@@ -506,8 +516,24 @@ Node* cctv_info_load()
 void Thread::run()
 {
 		printf("[Thread class]\n");
-		thread thr(receive_data_from_android,&c_socket_t);
-		thr.detach();
+		char choice[30];
+		char s_check[10];
+		strcpy(s_check,"zero");
+		read(c_socket_t, choice,sizeof(choice));
+		printf("[Thread class]got choice info : *%s*\n",choice);
+		write(c_socket_t,s_check,strlen(s_check)+1);
+		if(strcmp(choice,"info")==0)
+		{
+				printf("[Thread class]c_socket is connected and now ready for taking info from a user\n");
+				thread thr(receive_data_from_android,&c_socket_t);
+				thr.detach();
+		}
+		else
+		{
+				printf("[Thread class]c_socket is connected and took a state info from a User\n");
+				thread thr(receive_state_from_android ,&c_socket_t);
+				thr.detach();
+		}
 }
 
 
