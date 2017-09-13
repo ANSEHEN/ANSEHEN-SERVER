@@ -384,7 +384,7 @@ void bcn_sig_to_cctv(int* msgid)
 		int state;
         while((sql_row=mysql_fetch_row(sql_result))!=NULL)
         {
-			if(strcmp(msg.BeaconId,sql_row[5])==0)
+			if(strcmp(msg.BeaconId,sql_row[6])==0)
 			{		
 					check=true;
 					int cnt = atoi(sql_row[3]);
@@ -441,7 +441,6 @@ static size_t write_data(void *ptr,size_t size, size_t nmemb, void * stream)
 	size_t written = fwrite(ptr, size, nmemb, (FILE *) stream);
 	return written;
 }
-
 
 Node* cctv_info_load()
 {
