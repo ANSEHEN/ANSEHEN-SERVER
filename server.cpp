@@ -196,7 +196,7 @@ void result_to_android(int *msgid)
                 fprintf(stderr,"%s\n",mysql_error(connection));
                 exit(1);
 		}
-		sprintf(query,"update SEND_CCTV_INFO set result = %d where unique_key = '%s' and cctv_id = '%s'",msg.result,msg.unique_key,msg.buf);
+		sprintf(query,"update SEND_CCTV_INFO set state = %d where unique_key = '%s' and cctv_id = '%s'",msg.result,msg.unique_key,msg.buf);
 
 		int query_stat = mysql_query(connection,query);
         if(query_stat != 0)
@@ -204,6 +204,10 @@ void result_to_android(int *msgid)
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
         }
         mysql_close(connection);
+		
+		sprintf(query,"curl -d \"uniqueKey=%s&result=%d\" http://13.124.164.203/main_set_result.php",msg.unique_key,msg.result);
+		system(query);
+		printf("[result_to_android]\n");
 	}
 }
 
@@ -248,21 +252,21 @@ void get_location(int c_socket)
 		double longitude;
 		char* temp_p=NULL;
 		root = cctv_info_load();
+		int seq=0;
 		for(;;)
 		{
 				char test_ch[BUFSIZ];
 				Node *cur = root;
 				read(c_socket,r_allPath,sizeof(r_allPath));
-				printf("[get_location]got allPath : *%s*\n",r_allPath);
+				//printf("[get_location]got allPath : *%s*\n",r_allPath);
 				if(strcmp(r_allPath,"one")==0)
 						break;
-				printf("temp: %s\n");
 				ptr=strtok(r_allPath,",");
 				latitude = atof(ptr);
-				printf("[get_location] latitude %lf\n",latitude);
+				//printf("[get_location] latitude %lf\n",latitude);
 				ptr= strtok(NULL,",");
 				longitude = atof(ptr);
-				printf("[get_location] longitude %lf\n",longitude);
+				//printf("[get_location] longitude %lf\n",longitude);
 				while(cur!=NULL)
 				{
 						if(cur->data->get_check()==false)
@@ -278,9 +282,9 @@ void get_location(int c_socket)
 								ptr=strtok(temp_p,",");
 								latitude_c = atof(ptr);
 								ptr= strtok(NULL,",");
-								printf("[get_location]path latitude %lf longitude %lf\n",latitude,longitude);
+								//printf("[get_location]path latitude %lf longitude %lf\n",latitude,longitude);
 								longitude_c = atof(ptr);
-								printf("[get_location]cctv latitude %lf longitude %lf \n",latitude_c,longitude_c);
+								//printf("[get_location]cctv latitude %lf longitude %lf \n",latitude_c,longitude_c);
 								ptr=NULL;
 								ptr2=NULL;
 								temp_lat=latitude-latitude_c;
@@ -291,15 +295,16 @@ void get_location(int c_socket)
 								if(temp_lon<0){
 										temp_lon=temp_lon*(-1);
 								}
-								printf("Path %lf\n",temp_lat+temp_lon);
+								//printf("Path %lf\n",temp_lat+temp_lon);
 								if((temp_lat+temp_lon)<0.00025){
 										//허용범위내 CCTV가 위치함
 										//경로 설정하도록 코드작성
 										printf("[get CCTV]------------------------\n");
 										cur->data->set_check();
-										printf("[get CCTV]cctv_id: %s Lat: %lf,Lon: %lf\n",cur->data->get_id(),latitude_c,longitude_c);
+										seq++;
+										printf("[get CCTV] sequence %d . cctv_id: %s Lat: %lf,Lon: %lf selected\n",seq,cur->data->get_id(),latitude_c,longitude_c);
 										// unique key 와 cctv_id를 이용하여 db에 SEND_CCTV_INFO에 저장 
-										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id,cnt) values ('%s','%s',0)",r_uniqueKey,cur->data->get_id());
+										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id,cnt,seq) values ('%s','%s',0,'%d')",r_uniqueKey,cur->data->get_id(),seq);
 
 										query_stat = mysql_query(connection,query);
         								if(query_stat != 0)
