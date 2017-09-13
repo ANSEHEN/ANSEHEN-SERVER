@@ -70,6 +70,9 @@ int main(void)
         close(s_socket);
         return 0;
 }
+void receive_result_from_android(int *csocket)
+{
+}
 
 void receive_state_from_android(int *csocket)
 {
@@ -80,6 +83,7 @@ void receive_state_from_android(int *csocket)
         char query[BUFSIZ];
 		char *ptr;
 		printf("[receive state]\n");
+		//cctv 포인트지점을 지났는 지에 대한 결과를 안드로이드로 부터 받아서... 재저장.....
 }
 void receive_data_from_android(int *csocket)
 {
@@ -314,7 +318,7 @@ void get_location(int c_socket)
 										seq++;
 										printf("[get CCTV] sequence %d . cctv_id: %s Lat: %lf,Lon: %lf selected\n",seq,cur->data->get_id(),latitude_c,longitude_c);
 										// unique key 와 cctv_id를 이용하여 db에 SEND_CCTV_INFO에 저장 
-										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id,cnt,seq) values ('%s','%s',0,'%d')",r_uniqueKey,cur->data->get_id(),seq);
+										sprintf(query,"insert into SEND_CCTV_INFO (unique_key, cctv_id,cnt,seq) values ('%s','%s',0,%d)",r_uniqueKey,cur->data->get_id(),seq);
 
 										query_stat = mysql_query(connection,query);
         								if(query_stat != 0)
@@ -528,11 +532,21 @@ void Thread::run()
 				thread thr(receive_data_from_android,&c_socket_t);
 				thr.detach();
 		}
-		else
+		else if(strcmp(choice,"state")==0)	
 		{
 				printf("[Thread class]c_socket is connected and took a state info from a User\n");
 				thread thr(receive_state_from_android ,&c_socket_t);
 				thr.detach();
+		}
+		else if(strcmp(choice,"result")==0)
+		{
+				printf("[Thread class]c_socket is connected and took a result info from a User\n");
+				thread thr(receive_result_from_android,&c_socket_t);
+				thr.detach();
+		}
+		else
+		{
+				printf("[Thread class]c_socket is connected\n");
 		}
 }
 
