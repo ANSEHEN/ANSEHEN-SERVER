@@ -72,6 +72,34 @@ int main(void)
 }
 void receive_result_from_android(int *csocket)
 {
+		int c_socket=*csocket;
+		MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+		char *ptr;
+		printf("[receive state]\n");
+		//
+
+		char s_check[10];
+		char unique_key[100];
+		int query_stat;
+
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+				exit(1);
+        }
+
+        read(c_socket, unique_key,sizeof(unique_key));
+		strcpy(s_check,"zero");
+		//receive unique key from android
+		write(c_socket,s_check,strlen(s_check)+1);
+
+		printf("[receive_result_from_android] service finish (%s)\n",unique_key);
+		close(c_socket);
+        mysql_close(connection);
 }
 
 void receive_state_from_android(int *csocket)
@@ -84,6 +112,39 @@ void receive_state_from_android(int *csocket)
 		char *ptr;
 		printf("[receive state]\n");
 		//cctv 포인트지점을 지났는 지에 대한 결과를 안드로이드로 부터 받아서... 재저장.....
+
+		char s_check[10];
+		char unique_key[100];
+		char cctv_id[10];
+		int query_stat;
+
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+				exit(1);
+        }
+
+        read(c_socket, unique_key,sizeof(unique_key));
+		strcpy(s_check,"zero");
+		//receive unique key from android
+		write(c_socket,s_check,strlen(s_check)+1);
+        
+		read(c_socket, cctv_id,sizeof(cctv_id));
+		strcpy(s_check,"zero");
+		//receive cctv_id from android
+		write(c_socket,s_check,strlen(s_check)+1);
+
+		sprintf(query,"update SEND_CCTV_INFO set state = 1 where cctv_id = '%s' and unique_key = '%s'",cctv_id,unique_key);
+		printf("query : %s\n",query);
+		
+		query_stat = mysql_query(connection,query);
+        if(query_stat != 0)
+        {
+ 		    fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
+        }
+		close(c_socket);
+        mysql_close(connection);
 }
 void receive_data_from_android(int *csocket)
 {
@@ -185,6 +246,7 @@ void receive_data_from_android(int *csocket)
 		strcpy(msg.image_addr,c_buff[4]);
 		if(msgsnd(msgid,(void*)&msg,sizeof(msg),0)==-1)
              perror("send fail ");
+		printf("\n[receive_data] finished (unique_key %s)\n",msg.unique_key);
         mysql_close(connection);
 }
 
@@ -546,6 +608,7 @@ void Thread::run()
 		else
 		{
 				printf("[Thread class]c_socket is connected\n");
+				close(c_socket_t);
 		}
 }
 
