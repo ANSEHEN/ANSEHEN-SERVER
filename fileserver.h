@@ -19,7 +19,8 @@
 #define TYPE_BEACON_C 4
 #define BEACONDISCONNECT 3
 #define TYPE_RESULT 5
-class mbuf {
+class mbuf 
+{
 	public :
 	long mtype;
 	char buf[100];
@@ -28,7 +29,8 @@ class mbuf {
 	int result;
 };
 
-class beacon_data{
+class beacon_data
+{
 	public:
 	long mtype;
 	int state;
@@ -36,7 +38,8 @@ class beacon_data{
 	char PrimaryKey[100];
 };
 
-class Cctv_data {
+class Cctv_data 
+{
 	public:
 	char cctv_id[5];
 	char ip[20];
@@ -49,13 +52,15 @@ class Cctv_data {
 	}
 };
 
-class Pocket {
+class Pocket 
+{
 	public :
 	int c_socket;
 	Cctv_data cctv;
 };
 
-class Data {
+class Data 
+{
 	public :
 	char unique_key[100];
 	char image_addr[200];
@@ -65,7 +70,8 @@ void err_display(const char *msg);
 Node* get_send_cctv_info(char * uniqueKey);
 Node* cctv_info_load();
 
-class Thr_data{
+class Thr_data
+{
 	public :
 	Data user_data;
 	Pocket pocket_data;
@@ -75,7 +81,8 @@ class Thr_data{
 };
 
 void data_send(Thr_data *thr);
-class Thread{
+class Thread
+{
 	public:
 	Thr_data thr_data;
 

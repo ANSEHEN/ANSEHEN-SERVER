@@ -18,7 +18,8 @@
 #define ARG_MAX 2
 #define BEACON_DISCONNECT 3
 
-class beacon_data{
+class beacon_data
+{
 	public:
 	long mtype;
 	int state;
@@ -29,7 +30,8 @@ class beacon_data{
 char buffer[BUFSIZ];
 const int type = 2;
 
-int main(){
+int main()
+{
 
 	int	c_socket, s_socket;
 	struct sockaddr_in s_addr, c_addr;
@@ -52,15 +54,18 @@ int main(){
 
 
 
-	if(bind(s_socket, (struct sockaddr *) &s_addr, sizeof(s_addr)) == -1) {
+	if(bind(s_socket, (struct sockaddr *) &s_addr, sizeof(s_addr)) == -1) 
+	{
 		printf("Can not Bind\n");
 		return -1;
 	}
-	if(listen(s_socket, 5) == -1) {
+	if(listen(s_socket, 5) == -1) 
+	{
 		printf("listen Fail\n");
 		return -1;
 	}
-	while(1){
+	while(1)
+	{
 
 		printf("[beacon disconnect]Before: socket connecte\n");
 
@@ -84,7 +89,8 @@ int main(){
 
 		bd.mtype=type;
 		bd.state=BEACON_DISCONNECT; 
-		if(msgsnd(msgid,(void*)&bd,sizeof(class beacon_data),0)==-1){
+		if(msgsnd(msgid,(void*)&bd,sizeof(class beacon_data),0)==-1)
+		{
 			perror("send fail");
 		}
 		close(c_socket);

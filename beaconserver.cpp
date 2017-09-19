@@ -16,7 +16,8 @@
 #define ARG_MAX 2
 #define BEACON_CONNECT 2
 
-class beacon_data{
+class beacon_data
+{
 	public:
 	long mtype;
 	int state;
@@ -25,7 +26,8 @@ class beacon_data{
 };
 char buffer[BUFSIZ];
 const int type = 2;
-int main(){
+int main()
+{
 	int	c_socket, s_socket;
 	struct sockaddr_in s_addr, c_addr;
 	socklen_t	len;
@@ -46,17 +48,20 @@ int main(){
 	s_addr.sin_family = AF_INET;
 	s_addr.sin_port = htons(PORT);
 
-	if(bind(s_socket, (struct sockaddr *) &s_addr, sizeof(s_addr)) == -1) {
+	if(bind(s_socket, (struct sockaddr *) &s_addr, sizeof(s_addr)) == -1) 
+	{
 		printf("Can not Bind\n");
 		return -1;
 	}
 
-	if(listen(s_socket, 5) == -1) {
+	if(listen(s_socket, 5) == -1) 
+	{
 		printf("listen Fail\n");
 		return -1;
 	}
 		
-	while(1){
+	while(1)
+	{
 		printf("[beacon_server] Before: socket connecte\n");
 		c_socket = accept(s_socket, (struct sockaddr *) &c_addr, &len);
 		printf("[beacon_server] socket connected\n");

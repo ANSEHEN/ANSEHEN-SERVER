@@ -26,7 +26,7 @@ int main(void)
         s_addr.sin_addr.s_addr = htonl(INADDR_ANY);
         s_addr.sin_family = AF_INET;
         s_addr.sin_port = htons(PORT);
-        ////////////////////////////////////////
+		
 		msgid=msgget(1234,IPC_CREAT);
 
 		/* CCTV Information*/
@@ -79,7 +79,6 @@ void receive_result_from_android(int *csocket)
         char query[BUFSIZ];
 		char *ptr;
 		printf("[receive state]\n");
-		//
 
 		char s_check[10];
 		char unique_key[100];
@@ -94,6 +93,7 @@ void receive_result_from_android(int *csocket)
 
         read(c_socket, unique_key,sizeof(unique_key));
 		strcpy(s_check,"zero");
+
 		//receive unique key from android
 		write(c_socket,s_check,strlen(s_check)+1);
 
@@ -334,15 +334,12 @@ void get_location(int c_socket)
 				char test_ch[BUFSIZ];
 				Node *cur = root;
 				read(c_socket,r_allPath,sizeof(r_allPath));
-				//printf("[get_location]got allPath : *%s*\n",r_allPath);
 				if(strcmp(r_allPath,"one")==0)
 						break;
 				ptr=strtok(r_allPath,",");
 				latitude = atof(ptr);
-				//printf("[get_location] latitude %lf\n",latitude);
 				ptr= strtok(NULL,",");
 				longitude = atof(ptr);
-				//printf("[get_location] longitude %lf\n",longitude);
 				while(cur!=NULL)
 				{
 						if(cur->data->get_check()==false)
@@ -358,9 +355,7 @@ void get_location(int c_socket)
 								ptr=strtok(temp_p,",");
 								latitude_c = atof(ptr);
 								ptr= strtok(NULL,",");
-								//printf("[get_location]path latitude %lf longitude %lf\n",latitude,longitude);
 								longitude_c = atof(ptr);
-								//printf("[get_location]cctv latitude %lf longitude %lf \n",latitude_c,longitude_c);
 								ptr=NULL;
 								ptr2=NULL;
 								temp_lat=latitude-latitude_c;
@@ -371,9 +366,9 @@ void get_location(int c_socket)
 								if(temp_lon<0){
 										temp_lon=temp_lon*(-1);
 								}
-								//printf("Path %lf\n",temp_lat+temp_lon);
+
 								if((temp_lat+temp_lon)<0.00025){
-										//허용범위내 CCTV가 위치함
+										//허용범위내(25m) CCTV가 위치함
 										//경로 설정하도록 코드작성
 										printf("[get CCTV]------------------------\n");
 										cur->data->set_check();
@@ -411,9 +406,7 @@ void get_location(int c_socket)
 void bcn_sig_to_cctv(int* msgid)
 {
 	beacon_data msg;
-//TYPE_BEACON 2
-//type_beacon_c 4
-	// BEACON_DISCONNECT 3
+
 	while(1)
 	{
 		printf("[bcn_sig_to_cctv]wait for beacon signal\n");
@@ -452,7 +445,6 @@ void bcn_sig_to_cctv(int* msgid)
 					int cnt = atoi(sql_row[3]);
 					int rs = atoi(sql_row[2]);
 					printf("[bcn_sig_to_cctv]true count %d state %d result %d\n",cnt,msg.state,rs);
-					// 조건문 체크해 볼 것.
 
 					if((rs==0)&&msg.state==TYPE_BEACON)//비컨 영역 안에 처음 들어옴
 					{
@@ -488,7 +480,7 @@ void bcn_sig_to_cctv(int* msgid)
         	if(query_stat != 0)
         	{
                 fprintf(stderr,"Mysql query error : %s\n",mysql_error(connection));
-        	};
+        	}
 		}
         mysql_close(connection);
 		msg.mtype=TYPE_BEACON_C;
@@ -573,9 +565,8 @@ Node* cctv_info_load()
 
 
         mysql_free_result(sql_result);
-
         mysql_close(connection);
-	return root;
+		return root;
 }
 
 void Thread::run()
@@ -585,7 +576,7 @@ void Thread::run()
 		char s_check[10];
 		strcpy(s_check,"zero");
 		read(c_socket_t, choice,sizeof(choice));
-		printf("[Thread class]got choice info : *%s*\n",choice);
+		printf("[Thread class]got choice info : %s\n",choice);
 		write(c_socket_t,s_check,strlen(s_check)+1);
 		if(strcmp(choice,"info")==0)
 		{
