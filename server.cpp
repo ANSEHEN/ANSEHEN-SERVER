@@ -101,7 +101,7 @@ void receive_exit_signal_from_android(int *csocket)
 	sprintf(query,"update USER_INFO set exit_signal = 1 where unique_key = '%s'",unique_key);
 	query_stat = mysql_query(connection,query);
 	if(query_stat!=0)
-			printf("[exit signal from android] delete from SEND... fail..\n");
+			printf("[exit signal from android] update USER... fail..\n");
 	close(c_socket);
         mysql_close(connection);
 }
