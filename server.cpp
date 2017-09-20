@@ -70,7 +70,7 @@ int main(void)
         close(s_socket);
         return 0;
 }
-void receive_result_from_android(int *csocket)
+void receive_exit_signal_from_android(int *csocket)
 {
 	int c_socket=*csocket;
 	MYSQL *connection;
@@ -78,7 +78,7 @@ void receive_result_from_android(int *csocket)
         MYSQL_ROW sql_row;
         char query[BUFSIZ];
 	char *ptr;
-	printf("[receive state]\n");
+	printf("[receive :exit signal]\n");
 
 	char s_check[10];
 	char unique_key[100];
@@ -97,7 +97,52 @@ void receive_result_from_android(int *csocket)
 	//receive unique key from android
 	write(c_socket,s_check,strlen(s_check)+1);
 
-	printf("[receive_result_from_android] service finish (%s)\n",unique_key);
+	printf("[exit_signal_from_android] service finish (%s)\n",unique_key);
+	sprintf(query,"update USER_INFO set exit_signal = 1 where unique_key = '%s'",unique_key);
+	query_stat = mysql_query(connection,query);
+	if(query_stat!=0)
+			printf("[exit signal from android] delete from SEND... fail..\n");
+	close(c_socket);
+        mysql_close(connection);
+}
+void receive_result_from_android(int *csocket)
+{
+	int c_socket=*csocket;
+	MYSQL *connection;
+        MYSQL_RES  *sql_result;
+        MYSQL_ROW sql_row;
+        char query[BUFSIZ];
+	char *ptr;
+	printf("[receive :result]\n");
+
+	char s_check[10];
+	char unique_key[100];
+	int query_stat;
+
+        connection = mysql_init(NULL);
+        if(!mysql_real_connect(connection,host,user,pw,db,0,NULL,0))
+        {
+                fprintf(stderr,"%s\n",mysql_error(connection));
+		exit(1);
+        }
+
+        read(c_socket, unique_key,sizeof(unique_key));
+	strcpy(s_check,"zero");
+
+	//receive unique key from android
+	write(c_socket,s_check,strlen(s_check)+1);
+
+	printf("[result_from_android] service finish (%s)\n",unique_key);
+	sprintf(query,"delete from SEND_CCTV_INFO where unique_key ='%s'",unique_key);
+	query_stat = mysql_query(connection,query);
+	if(query_stat!=0)
+			printf("[result from android] delete from SEND... fail..\n");
+
+	sprintf(query,"delete from USER_INFO where unique_key ='%s'",unique_key);
+	query_stat = mysql_query(connection,query);
+	if(query_stat!=0)
+			printf("[result from android] delete from USER... fail..\n");
+
 	close(c_socket);
         mysql_close(connection);
 }

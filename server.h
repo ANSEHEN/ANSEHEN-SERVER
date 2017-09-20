@@ -52,3 +52,5 @@ void result_to_android(int *msgid);
 void receive_data_from_android(int *csocket);
 void receive_state_from_android(int *csocket);
 void receive_result_from_android(int *csocket);
+void receive_exit_signal_from_android(int *csocket);
+
